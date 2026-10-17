@@ -1,7 +1,8 @@
 # CPSSP Solver — Checkpoint & Stato dei Lavori
 **Data di Salvataggio:** 17 Ottobre 2026  
 **Autore:** Guido Perboli / Antigravity Pair Programming  
-**Cartella Progetto:** `sssp-master`
+**Cartella Progetto:** `sssp-master`  
+**Repository GitHub:** [https://github.com/guidoperboli/spss-bargetto](https://github.com/guidoperboli/spss-bargetto) (branch `main`)
 
 ---
 
@@ -12,14 +13,14 @@ In questa sessione di lavoro è stato completato con successo il porting e l'est
 1. **Porting Completo da C++ a Java 8+ (`java/`)**:
    - Creato il pacchetto Java [`cpssp`](file:///c:/Users/guido/Politecnico%20di%20Torino%20Staff%20Dropbox/Guido%20Perboli/Documenti/ricerca/spss-bargetto/sssp-master/java/src/main/java/cpssp) con architettura modulare (`model`, `ilp`, `algo`, `opt`, `util`).
    - Implementate tutte le metriche stocastiche: **EV** (Expected Value), **EEV**, **WS** (Wait-and-See), **RP** (Recourse Problem / FDE), **EVPI**, **VSS**, **RALB** (Row Aggregation Lower Bound) e **FDEE-IS** (Heuristic Upper Bound).
-   - Costruito il solver embedded compatibile Gurobi API ([`gurobi.GRBModel`](file:///c:/Users/guido/Politecnico%20di%20Torino%20Staff%20Dropbox/Guido%20Perboli/Documenti/ricerca/spss-bargetto/sssp-master/java/src/main/java/gurobi/GRBModel.java)) che garantisce esecuzione standalone immediata senza richiedere librerie native esterne.
+   - Costruito il solver embedded compatibile Gurobi API ([`gurobi.GRBModel`](file:///c:/Users/guido/Politecnico%20di%20Torino%20Staff%20Dropbox/Guido%20Perboli/Documenti/ricerca/spss-bargetto/sssp-master/java/src/main/java/gurobi/GRBModel.java)) che garantisce esecuzione standalone immediata senza richiedere librerie native esterne, con verifica esatta dei vincoli di affidabilità media $R$ e numero minimo di fornitori $N$.
 
 2. **Implementazione di Progressive Hedging (PH)**:
    - Implementato l'algoritmo di decomposizione per scenari basato su **Augmented Lagrangian** ([`ProgressiveHedging.java`](file:///c:/Users/guido/Politecnico%20di%20Torino%20Staff%20Dropbox/Guido%20Perboli/Documenti/ricerca/spss-bargetto/sssp-master/java/src/main/java/cpssp/algo/ProgressiveHedging.java)).
-   - Supporto a moltiplicatori di Lagrange $\lambda_m^s, \lambda_j^s$, penalità quadratiche linearizzate $\rho_k$, proiezione a politiche di 1° stadio intere ammissibili (rispetto di $N$, $R$, e vincoli di volume fornitore) e valutazione esatta dell'Upper Bound a ogni iterazione.
+   - Supporto a moltiplicatori di Lagrange $\lambda_m^s, \lambda_j^s$, penalità quadratiche linearizzate $\rho_k$, proiezione a politiche di 1° stadio intere ammissibili e tracciamento continuo della convergenza $\Delta \to 0$.
 
 3. **Verifica della Convergenza Matematica**:
-   - Risolto il disallineamento numerico nel modello di 1° stadio.
+   - Risolto il disallineamento numerico nel modello di 1° stadio (parsing del fornitore tramite `lastIndexOf("_s")` e corretta attivazione selettiva dei bin).
    - Verificato che **Progressive Hedging** e il **Modello Stocastico Diretto** (FDE / RALB) convergono esattamente allo **stesso identico valore di funzione obiettivo** su tutte le classi di istanze.
 
 ---
@@ -36,7 +37,26 @@ In questa sessione di lavoro è stato completato con successo il porting e l'est
 
 ---
 
-## 3. Struttura dei File nel Repository
+## 3. Note Teoriche e Modellistiche
+
+### A. Come PH Risolve i Sottoproblemi (Modello vs Euristica)
+- **Sottoproblemi per scenario (Modello MILP)**: Ciascun sottoproblema di scenario $s$ viene risolto tramite il **modello matematico MILP** con funzione obiettivo aumentata da moltiplicatori $\lambda^s$ e penalità $\rho$.
+- **Aggiornamento Moltiplicatori (Dual Ascent)**: Aggiorna $\lambda_m^s, \lambda_j^s$ e scala le penalità $\rho \leftarrow \alpha \rho$ in base allo scostamento dalla media.
+- **Estrazione Politica Intera (Euristica Rounding & Repair)**: Le medie frazionarie $\bar{w}, \bar{y} \in [0, 1]$ vengono proiettate a una soluzione binaria $0/1$ ammissibile con arrotondamento $\ge 0.5$ e riparazione per rispettare $N$, $R$ e consistenza fornitore-bin.
+- **Valutazione Upper Bound (Modello di Ricorso)**: La politica intera estratta viene valutata esattamente risolvendo il problema di ricorso su tutti gli scenari.
+
+### B. Perché le Funzioni Obiettivo sono Continue (con Decimali)?
+Sebbene le variabili decisionali siano intere/binarie ($w_m, y_j, z_k^s, x_{i,j}^s \in \{0, 1\}$), il valore della FO è continuo perché:
+1. **Valore Atteso Stocastico ($\mathbb{E}$)**: La FO minimizza $\sum_s p^s Q(y, \omega^s)$ con $p^s = \frac{1}{S}$ (es. $\frac{1}{2400}$ o $\frac{1}{14400}$). La media ponderata di valori discreti è un numero reale.
+2. **Parametri Unitari Frazionari**: I costi di degrado netto capacità $(c_m^t - r_m^t)$ sono espressi in €/m³ continui (es. $0.30$ €/m³), producendo centesimi e frazioni monetarie quando moltiplicati per i volumi persi.
+
+### C. Formulazione per Grandi Scenari ($S \ge 2400$)
+- Su istanze con 14.400 scenari e 100 item/scenario, la formulazione FDE con variabili di packing esplicito $x_{s,i,j}$ richiederebbe oltre 450 milioni di variabili.
+- Per grandi istanze si usa la formulazione surrogata di volume **RALB** (`-m ralb` o `-f RALB`), mentre per istanze piccole ($S \le 20$) si usa FDE con packing esplicito.
+
+---
+
+## 4. Struttura dei File nel Repository
 
 ```text
 sssp-master/
@@ -44,7 +64,7 @@ sssp-master/
 ├── .gitignore                          <-- Esclusioni file temporanei git
 ├── instance.txt                        <-- Istanza di test benchmark base (3 fornitori, 3 scenari)
 ├── instance_format_tokens.txt          <-- Header e formato token originali salvati
-├── instances/                          <-- Istanze caricate
+├── instances/                          <-- Istanze caricate (sincronizzate via Dropbox)
 │   ├── set_err20_lclzd/                <-- 2.400 scenari (degrado localizzato)
 │   ├── set_err20_unfrm/                <-- 2.400 scenari (degrado uniforme)
 │   ├── set_err120_lclzd/               <-- 14.400 scenari (degrado localizzato)
@@ -79,19 +99,23 @@ sssp-master/
 
 ---
 
-## 4. Come Eseguire da un Altro Computer
+## 5. Come Richiamarlo ed Eseguirlo da un Altro Computer
 
-Essendo la cartella salvata all'interno del proprio **Dropbox** (`Politecnico di Torino Staff Dropbox`), tutte le modifiche e i JAR compilati sono **già sincronizzati automaticamente** su qualsiasi computer su cui è attivo Dropbox.
+Il codice è salvato sia su **GitHub** ([https://github.com/guidoperboli/spss-bargetto](https://github.com/guidoperboli/spss-bargetto)) che su **Dropbox** (`Politecnico di Torino Staff Dropbox`).
 
 ### Requisiti
 - **Java JRE/JDK 8 o superiore** installato (o il JRE embedded dell'IDE).
 
-### Esecuzione Diretta (senza ricompilare)
+### Esecuzione Diretta
 
-#### Windows (`cmd` o `powershell`):
+#### Da GitHub (su nuovo computer):
+```bash
+git clone https://github.com/guidoperboli/spss-bargetto.git
+cd spss-bargetto
+```
+
+#### Comandi Windows (`cmd` o `powershell`):
 ```cmd
-cd "...\sssp-master"
-
 :: 1. Progressive Hedging su istanza base
 java\run.bat instance.txt -m ph -v
 
@@ -105,20 +129,20 @@ java\run.bat "instances\set_err120_unfrm\cpssp_M3_II50_IS100_HVRHSR_SN14400_1.tx
 java\run.bat instance.txt -m all -v
 ```
 
-#### Linux / macOS (`bash`):
+#### Comandi Linux / macOS (`bash`):
 ```bash
 chmod +x java/run.sh
 ./java/run.sh instance.txt -m ph -v
 ./java/run.sh instances/set_err20_lclzd/cpssp_M3_II50_IS100_HVRHSR_SN2400_1.txt -m fde -v
 ```
 
-### Ricompilazione (se si modificano i sorgenti)
+### Ricompilazione (opzionale)
 - **Windows**: `java\build.bat` (oppure `powershell -ExecutionPolicy Bypass -File java\build.ps1`)
 - **Maven**: `cd java && mvn package`
 
 ---
 
-## 5. Come Riprendere la Sessione con l'Assistente AI
+## 6. Come Riprendere la Sessione con l'Assistente AI
 Quando riaprirai la chat o continuerai il lavoro da un altro computer, basterà scrivere:
 > *"Riprendiamo il lavoro su sssp-master leggendo CHECKPOINT.md"*
 

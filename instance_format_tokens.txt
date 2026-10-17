@@ -1,0 +1,21 @@
+M
+N // min nr suppliers
+min_vol_x_supplier
+min_avg_relaibility
+theta_1 ... theta_m
+f_1 ... f_m // contract costs
+BT // bin types
+volume^1 ... volume^T // bin volumes
+f^1_1 ... f^t_m // 1st stage bin cost
+c^1_1 ... c^t_m // capacity loss cost 
+r^1_1 ... r^t_m // capacity loss compensation
+1st_stage_bins_count
+t_1 ... t_k // type of 1st stage bins
+m_1 ... m_k // supplier of 1st stage bins
+S // number of scenarios
+1st_V_1(s=1) ... 1st_V_k(s=1) // actual volume 1st stage bins unders s
+2nd_stage_bins_count(s=1)
+g^1_1(s=1) ... g^t_m(s=1) // 2st stage bin costs
+t_1(s=1) ... t_l(s=1) // type of 2st stage bins
+m_1(s=1) ... m_l(s=1) // supplier of 2st stage bins
+v_1(s=1) ... v_n(s=1) // items volume

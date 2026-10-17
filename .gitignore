@@ -1,0 +1,14 @@
+# Java build outputs
+java/target/classes/
+java/sources.txt
+grb.log
+*.log
+
+# IDE & Editor files
+.idea/
+*.iml
+.vscode/
+.antigravity/
+
+# Temporary solutions
+*.sspsol

@@ -1,0 +1,21 @@
+rootseed
+|instances|
+|suppliers|
+min_theta max_theta eps
+N
+min_vol_x_supplier
+min_avg_relaibility
+|items|
+|item types|
+(1) min_v max_v p
+(2) min_v max_v p
+(3) min_v max_v p
+|bin types|
+(1) vol pinf psup L/U p_loss_bin_type overall_loss_%
+(2) vol pinf psup L/U p_loss_bin_type overall_loss_%
+(3) vol pinf psup L/U p_loss_bin_type overall_loss_%
+|scenarios| p_loss_scenario
+alfa_value
+beta_min beta_max
+min_gamma max_gamma
+zeta_min zeta_max

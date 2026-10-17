@@ -1,0 +1,752 @@
+\documentclass[9pt,xcolor={dvipsnames}]{beamer}
+\usepackage[natbib=true,style=authoryear,backend=bibtex,useprefix=true]{biblatex}
+\setbeamertemplate{frametitle continuation}{}
+\usepackage{algorithm}
+\usepackage[noend]{algorithmic}
+\usepackage{multirow}
+\usepackage{wasysym}
+\usepackage{textcomp}
+\usepackage{tikz}
+\usepackage{amsfonts}
+\usepackage{beamerthemesplit}
+\usepackage{amsmath, amssymb}
+\setbeamercovered{transparent}
+\usepackage{changepage}
+%\setbeameroption{show notes}
+
+%\usepackage[round]{natbib}
+%\renewcommand{\newblock}{}
+
+\usepackage{mathtools}
+
+\newcommand*{\minx}{%
+    \mathmakebox[\widthof{$\max$}][r]{\min}%
+}
+\newcommand*{\maxx}{%
+    {\max}%
+}
+\newcommand*{\minxx}{%
+    \hphantom{\max}\mathllap{\min}%
+}
+
+
+\usepackage{xcolor}
+
+\usepackage{color, colortbl}
+
+\definecolor{LightCyan}{rgb}{0.68,1,1}
+\definecolor{LightCyan2}{rgb}{0.88,1,1}
+\definecolor{LightGreen}{rgb}{0.68,1,0.88}
+\definecolor{LightPink}{rgb}{1,0.88,0.88}
+
+\newcolumntype{g}{>{\columncolor{LightCyan}}c}
+\newcolumntype{f}{>{\columncolor{LightCyan2}}c}
+\newcolumntype{j}{>{\columncolor{LightGreen}}c}
+%\newcolumntype{p}{>{\columncolor{LightPink}}c}
+
+
+
+\mode<presentation>
+{
+	%%% COMMENT IF YOU PREFER PREVIOUS GRAPHIC STYLE
+	%%% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+%	\usetheme{CambridgeUS}
+%	\usecolortheme{dove}
+%	\setbeamersize{text margin left=1em,text margin right=1em}
+%	\defbeamertemplate{itemize item}{image}{\small\includegraphics[height=2.5ex]{world.png}}
+%	\defbeamertemplate{itemize subitem}{image}{\small\includegraphics[height=2.5ex]{plane.png}}
+%	\defbeamertemplate{itemize subsubitem}{image}{\small\includegraphics[height=2.5ex]{bus.png}}
+%	\setbeamertemplate{itemize item}[image]
+%	\setbeamertemplate{itemize subitem}[image]
+%	\setbeamertemplate{itemize subsubitem}[image]
+	%%% <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+	%%% UNCOMMENT TO GET PREVIOUS GRAPHIC STYLE
+	%%% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	%\usetheme{Luebeck}
+	\usetheme{oro} % Beamer Theme
+	\usecolortheme{oro} % Beamer Color Theme
+	\usefonttheme{oro}
+	%\usecolortheme{whale} % Beamer Color Theme
+	\useoutertheme{oro} % Beamer Outer Theme
+	%\useinnertheme{oro} % Beamer Outer Theme
+	%%% <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+}
+
+\usepackage[T1]{fontenc}
+
+%\titlegraphic{\includegraphics[height=3cm]{logopoli.png}}
+
+%%% COMMENT IF YOU USE THEME "ORO"
+%%% >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+%\logo{\includegraphics[height=0.67cm]{imgs/logopolito.png}}
+%\newcommand{\mostra}[1]{{\usebeamercolor[fg]{myblue}#1}}
+%\newcommand{\mostraLink}[1]{{\usebeamercolor[fg]{mylink}#1}}
+%%% <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+\usepackage[style=authoryear]{biblatex}
+%\bibliography{biblio}
+%\bibliography{global_references}
+
+\title[SVCSBPP-CL-SS]{Stochastic Variable Cost and Size Bin Packing with Capacity Loss and Supplier Selection problem}
+\author [Bargetto, Crainic, Perboli, Rei] %[R.~Bargetto, T.~G.~Crainic, G.~Perboli, W.~Rei]
+	{Roberto~Bargetto${}^1$, Teodor~Gabriel~Crainic${}^{2,3}$, {\bf{Guido~Perboli}}${}^{1,2}$, Walter~Rei${}^{2,3}$}
+\institute[POLITO/CIRRELT]{{\small ${}^1$ Politecnico di Torino, Turin, Italy,} 	\\
+{\small ${}^2$ CIRRELT, Montreal, Canada,}		\\
+{\small ${}^3$ UQAM, Montreal, Canada,}		\\
+\vspace{1.0cm}
+\includegraphics[width=5 cm]{LogoPoliCirrelt}}
+
+\date{ISMP 2024}
+
+\bibliography{biblio.bib}
+
+
+\begin{document}
+
+\usebackgroundtemplate{%
+\tikz\node[opacity=0.15] {\includegraphics[height=\paperheight,width=\paperwidth]{Castello_del_valentino.jpg}};}
+
+\setbeamertemplate{section in toc}{%
+    \small\includegraphics[height=2.5ex]{world.png}  \hspace{0.3em} \inserttocsection \par}
+
+\setbeamertemplate{subsection in toc}{
+ \leavevmode\leftskip=1.5em   \small\includegraphics[height=2.5ex]{plane.png} \hspace{0.3em} \inserttocsubsection \par}
+
+\begin{frame}[plain]
+\maketitle
+\end{frame}
+ \usebackgroundtemplate{}
+
+\begin{frame}
+\frametitle{Outline}
+\tableofcontents[pausesections]
+\end{frame}
+
+\section {Problem definition}
+%%% Stochastic variable cost and size bin packing with capacity Loss and supplier selection
+\begin{frame}%[allowframebreaks]
+	\frametitle{Problem definition}
+	\framesubtitle{Supplier selection}
+	\begin{itemize}
+		\item<1-> The shipping business has moved from long-term contracts to a more flexible environment based on short-term contracts and ``on-spot'' transactions
+		\bigskip
+		\item<2-> This shift is rooted in the events that have characterized recent years (pandemic, war, etc.) and impacted logistic systems and supply chains
+		\bigskip
+		\item<3-> The market of shipping has been shaken and the volatility of transportation rates increased (\cite{crainic2016logistics})
+		\begin{itemize}
+			\item This asks for better decision-making but also leads to better profit opportunities
+		\end{itemize}
+		\bigskip
+		\item<4-> Shippers now frequently select their carrier suppliers and diversify this selection to cover the risk of undelivered capacity due to many possible events (mechanical failures, accidents, delays, etc.)
+	\end{itemize}
+\end{frame}
+
+\begin{frame}%[allowframebreaks]
+	\frametitle{Problem definition}
+	\framesubtitle{Supplier selection}
+	\begin{itemize}
+		\item<1-> Carrier companies sell storage and transportation services at
+		\bigskip
+		\begin{itemize}
+			\item<1-> \textbf{Contract rates}
+			\medskip
+			\item<2-> \textbf{Spot rates}
+		\end{itemize}
+		\bigskip
+		\item<3-> Contract rates are applied for medium-term purchase agreements for securing future use of capacity and spot rates for just-in-time operations
+		\bigskip
+		\item<4-> \textbf{\color{purple} Spot rates} are typically much higher than \textbf{\color{blue} contract rates}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}%[allowframebreaks]
+	\frametitle{Problem definition}
+	\framesubtitle{Supplier selection}
+	\begin{itemize}
+		\item<1-> We consider the problem of a \textbf{shipper} seeking a better profit on operations 
+		\bigskip
+		\item<2-> The shipper wants to identify the set of carrier companies to contract with for the next period of operations
+		\bigskip
+		\item<3-> The business setting of the next period is uncertain, the shipper does not know perfectly
+		\bigskip
+		\begin{itemize}
+			\item<3-> the number of orders that will be received
+			\bigskip
+			\item<4-> the actual capacity the carrier companies will deliver if contracted
+			\bigskip
+			\item<5-> the spot rates applied
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}%[allowframebreaks]
+	\frametitle{Problem definition}
+	\framesubtitle{Supplier selection}
+	\begin{itemize}
+%		\item \textbf{\color{purple} Spot rates} are typically much higher than \textbf{\color{blue} contract rates}
+%		\bigskip
+		\item<1-> The shipper looks for the best trade-off of capacity bought at contract rates and spot rates
+		\begin{itemize}
+			\footnotesize
+			\item<2-> We also assume that the shipper faces a cost for capacity loss in the 2nd-stage and that the concerned suppliers pay a compensation fee to the shipper
+		\end{itemize}
+		\bigskip
+		\item<3-> The shipper wants to compose a portfolio of carrier suppliers that minimizes the expected cost of operations
+		\bigskip
+		\item<4-> The shipper reduces the risk of uncertain factors by diversifying the supplier selection
+	\end{itemize}
+\end{frame}
+
+\section{Two-stage stochastic integer programming model}
+\begin{frame}%[allowframebreaks]
+	\frametitle{Two-stage stochastic integer programming model}
+	\framesubtitle{1st-stage and 2nd-stage decisions}
+	\begin{itemize}
+		\item<1-> The shipper's supplier selection problem is two-stage by definition
+		\bigskip
+		\item<2-> The shipper
+		\bigskip
+		\begin{itemize}
+		\item<2-> selects the suppliers and buys some capacity at contract rates in the \textbf{1st stage} and
+		\bigskip
+		\item<3-> buys at spot rates the capacity required to ship all orders in the \textbf{2nd stage}, when complete information is available
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}%[allowframebreaks]
+	\frametitle{State of the art}
+	\begin{itemize}
+		\item<1-> Bin Packing for Capacity Planning in Supply Chain and Transportation (\cite{chapterBernard2024}) 
+		\begin{itemize}
+ %\footfullcite{chapterBernard2024}
+        	\item<1-> \cite{crainic2016logistics} considered the problem of packing an uncertain set of items into bins selected in the 1st-stage and additional bins purchased in the 2nd-stage
+	        \item<2-> Neglecting uncertainty, tactical planning problems of transportation are effectively modeled and solved as VCSBPP, e.g., last-mile delivery~(\cite{perboli2021new})
+		    \item<3-> The same problem setting of~\cite{crainic2016logistics} is considered in~\cite{bruni2023machine}, from the perspective of e-commerce retailers (such as Amazon or Alibaba), and resorting machine learning predictions to match real-time computational requirements
+	        \item<4-> In \cite{crainic2024} the focus is on the uncertain capacity in the 2nd-stage of the bins purchased in the 1st-stage from a single supplier; % (uncertainty is due to possible mechanical failures, delays of delivery, etc.).
+	        authors define the Stochastic Variable Cost and Size Bin Packing Problem (SVCSBPP) and perform a comprehensive set of tests under different operational and uncertainty scenarios
+		\end{itemize}
+    	\item<5-> No problem is considering the effect of the contract negotiation in the capacity planning
+	    \item<6-> We model the supplier selection problem as an extension of the two-stage modeling of the SVCSBPP (\cite{crainic2024})
+%		\item Progressive-hedging appears as the best algorithm for two-stage SVCSBPPs, e.g.,~\cite{bruni2023machine, crainic2016logistics, crainic2024}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}%[allowframebreaks]
+	\frametitle{Two-stage stochastic integer programming model}
+	\framesubtitle{Sets and notation}
+	\begin{itemize}
+		\item<1-> Given
+		\begin{description}
+			\footnotesize
+			\item<1-> [$\mathcal{M}$:] the set of available suppliers
+			\medskip
+			\item<2-> [$T$ and $ \cal T$:] the bin types available respectively at the 1st-stage and 2nd-stage
+			\medskip
+			\item<3-> [$\mathcal{J}^t_m$:] the set of bins of type $ t$ that the supplier $ m$ can provide at the 1st-stage
+			\medskip
+			\item<4-> [$\theta_m$:] the reliability of supplier $ m$ (i.e., the percentage of capacity delivered on average in the past)
+			\medskip
+			\item<5-> [$R$ and $\nu$:] the average minimum reliability the shipper targets for selected suppliers and the minimum percentage of capacity to buy at 1st-stage from each selected supplier respectively
+			\medskip
+			\item<6-> [$\Omega$:] the set of 2nd-stage scenarios
+			\medskip
+			\item<7-> [${\cal K}(\omega)$:] the set of 2nd-stage bins available under scenario $ \omega \in \Omega$
+			\medskip
+			\item<8-> [$D$ and $I_d(\omega)$:] the set of possible order sizes respectively and the set of orders of size $ d$ under scenario $ \omega \in \Omega$
+		\end{description}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}%[allowframebreaks]
+	\frametitle{Two-stage stochastic integer programming model}
+	\framesubtitle{1st-stage variables}
+	\begin{itemize}
+		\item<1-> Given also
+		\begin{description}
+			\footnotesize
+			\item<1-> [$ f_m$ and $ f^t_m$:] respectively the cost for contracting supplier $ m$ and the contract rate for bins of type $ t$ from supplier $ m$
+			\medskip
+			\item<2-> [$c^t_m$ and $ r^t_m$:] respectively the cost the shipper face and the compensation the supplier pays for lost capacity (we assume $c^t_m \ge r^t_m$)
+			\medskip
+			\item<3-> [$ V^t_m$, $ V^\tau$ and ${\cal V}_{j}(\omega)$:] respectively the volumes of 1st-stage and 2nd-stage bins according to type $ t$ or $ \tau$ and of the 1st-stage bin $ j$ under scenario $ \omega \in \Omega$
+		\end{description}
+		\bigskip
+		\item<4-> 1st-stage variables
+		\begin{description}
+			\footnotesize
+			\item<4-> [$y_m$:] a binary variable that takes value 1 if supplier $ m \in \mathcal{M}$ is selected
+			\medskip
+			\item<4-> [$y^t_{jm}$:] a binary variable that takes value 1 if bin $ j$ of type $ t \in T$ is bought from supplier $ m \in \mathcal{M}$
+		\end{description}
+		\bigskip
+		\item<5-> and 2nd-stage variables
+		\begin{description}
+			\footnotesize
+			\item<5-> [$x_{dj}$:] an integer variable counting the number of orders of size $ d$ to pack into bin $ j$
+			\medskip
+			\item<5-> [$z^\tau_{k}(\omega)$:] a binary variable that takes value 1 if 2nd-stage bin $ k$ of type $ \tau \in {\cal T}$ is used
+		\end{description}
+	\end{itemize}
+%\frameskip
+\end{frame}
+
+\begin{frame}%[allowframebreaks]
+	\frametitle{Two-stage stochastic integer programming model}
+	\framesubtitle{1st-stage problem}
+    \onslide<1->
+    {
+    We have
+	\bigskip
+	{
+	\small
+	\begin{equation}
+		\label{2s:objf}
+		\min_{y} \sum\limits_{m \in \cal M} {f_{m}}y_{m} +  \sum\limits_{t \in T} \sum\limits_{m \in {{\cal M}}} \sum\limits_{j \in {\cal J}_{m}^t} f_{m}^t y_{j,m}^t  + {\mathbb{E}}_{\xi}\left[Q \left(y,\xi(\omega)\right)\right] 
+	\end{equation}
+    }
+    }
+    \onslide<2->
+    {
+	\noindent subject to
+    }
+    {
+    \small
+	\begin{alignat}{2}
+        \onslide<2->
+        {
+		\sum\limits_{m \in \cal {M}} y_{m}\geq{N}, & \qquad \label{eq3}\\
+        }
+        \onslide<3->
+        {
+		\sum\limits_{t \in T} \sum\limits_{j \in {\cal J}^t_{m}} V_{m}^{t} \ y_{j,m}^{t} \geq \nu \sum\limits_{t \in T} \sum\limits_{m \in {\cal M}} \sum\limits_{j \in {\cal J}^t_{m}} V_{m}^{t} \ y_{j,m}^{t}, & \qquad \forall m \in {\cal M} \label{eq3.2}\\
+        }
+        \onslide<4->
+        {
+		\sum\limits_{m \in {{\cal M}}} \ \theta_{m} \ y_{m}  \geq {R} \sum\limits_{m \in {\cal M}} \ y_{m}, & \qquad \label{eq4}\\
+        }
+        \onslide<5->
+        {
+%		\sum\limits_{t \in T} \sum\limits_{j \in {\cal J}^t_{m}} y_{j,m}^{t} \leq \left( \sum\limits_{t \in T} |{\cal J}^t_{m}| \right) y_{m}, & \qquad \forall m \in \cal M, \label{eq5}\\
+		y_{j,m}^{t} \leq y_{m}, & \qquad \forall t \in T, m \in {\cal M}, j \in {\cal J}^t_{m}, \label{eq5}\\
+        }
+        \onslide<6->
+        {        
+		y_{j,m}^t \in \{0, 1\}, & \qquad \forall t \in T, m \in {\cal M}, j \in {\cal J}^t_{m}, \label{eq6}\\
+		y_{m} \in \{0, 1\}, & \qquad \forall m \in \cal M \label{eq7},
+        }
+	\end{alignat}
+    }
+\end{frame}
+
+\begin{frame}%[allowframebreaks]
+	\frametitle{Two-stage stochastic integer programming model}
+	\framesubtitle{2nd-stage problem}
+	where
+	{
+	\small
+    \onslide<1->
+    {
+	\begin{equation}
+		\begin{split}
+			Q \left(y,\xi (\omega)\right) = & \min_{z(\omega), x(\omega)} 
+			\sum\limits_{\tau \in \cal T}\sum\limits_{k \in \cal K^{\tau}(\omega)} g^{\tau}(\omega) z_k^{\tau}(\omega) \; + \\
+			& + \sum\limits_{t \in T} \sum\limits_{m \in {\cal M}} \sum\limits_{j \in {\cal J}^t_{m}} (c_{m}^t-r_{m}^t)(V^{t} - {\cal V}_{j}(\omega)) y_{j,m}^t \label{eq8}
+		\end{split}
+	\end{equation}
+	}
+    }
+	\noindent {subject to}
+    {
+    \small
+	\begin{alignat}{2}
+        \onslide<2->
+        {        
+		\sum\limits_{j \in \cal J \cup {\cal K} (\omega)} x_{d,j}(\omega) = |I_d(\omega)|, & \qquad \forall d \in D, \label{eq9}\\
+        }
+        \onslide<3->
+        {        
+		\sum\limits_{d \in D} d x_{d,j}(\omega) \leq {\cal V}_{j}(\omega) y_{j,m}^t, & \qquad \forall \: t \in T, m\in{{\cal M}}, j \in {\cal J}^t_{m}, \label{eq10}\\
+        }
+        \onslide<4->
+        {        
+		\sum\limits_{d \in D} d x_{d,k}(\omega) \leq V^\tau z^{\tau}_k(\omega), & \qquad \forall \: \tau \in {\cal T}, k \in {\cal K}^{\tau}(\omega), \label{eq11}\\
+        }
+        \onslide<5->
+        {        
+		x_{d,j}(\omega) \in \mathbb{Z}^+, & \qquad \forall \: d \in D, j \in {\cal J}, \label{eq12}\\
+		x_{d,k}(\omega) \in \mathbb{Z}^+, & \qquad \forall \: d \in D, k \in \cal K(\omega), \label{eq13}\\
+		z_k^{\tau}(\omega) \in \{0, 1\}, & \qquad \forall \: \tau \in {\cal T}, k \in {\cal K}^{\tau}(\omega). \label{eq14}
+        }
+	\end{alignat}
+    }
+\end{frame}
+
+
+\section{Row aggregation lower bound}
+\begin{frame}%[allowframebreaks]
+	\frametitle{Row aggregation of the recourse problem}
+	\begin{itemize}
+		\item<1-> Given the total volume of orders $\Upsilon (\omega)$ under scenario $ \omega \in \Omega$
+		\bigskip
+		\item<2-> We can aggregate constraints~\eqref{eq10} and~\eqref{eq11} over bins, bin types and suppliers, and consequently discard constraints~\eqref{eq9}
+		\bigskip
+		\item<3-> And we obtain recourse problem
+		{
+			\small
+			\begin{equation*}
+				Q \left(y,\xi (\omega)\right)
+			\end{equation*}
+			\noindent {subject to}
+			\begin{alignat}{2}
+				\Upsilon (\omega) \leq \sum\limits_{\substack{ m \in {\cal M}, \\ t \in T, \\ j \in {\cal J}^t_{m}}} {\cal V}_{j}(\omega) y_{j,m}^t + \sum\limits_{\substack{\tau \in {\cal T}, \\ k \in {\cal K}^{\tau,s}}} V^\tau z^{\tau}_k(\omega), & \qquad \forall \: \omega \in \Omega, \label{eq10lb}\\
+				z_k^{\tau}(\omega) \in \{0, 1\}, & \qquad \forall \: \tau \in {\cal T}, k \in {\cal K}^{\tau}(\omega), \label{eq14lb}
+			\end{alignat}
+		}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}%[allowframebreaks]
+	\frametitle{Row aggregation of the recourse problem}
+	\begin{itemize}
+		\item<1-> By solving problem
+		{
+		\small
+		\begin{equation*}
+		\min_{y} \sum\limits_{m \in \cal M} {f_{m}}y_{m} +  \sum\limits_{t \in T} \sum\limits_{m \in {{\cal M}}} \sum\limits_{j \in {\cal J}_{m}^t} f_{m}^t y_{j,m}^t  + {\mathbb{E}}_{\xi}\left[Q \left(y,\xi(\omega)\right)\right] 
+		\end{equation*}
+		\noindent {subject to}
+		\begin{equation*}
+			\eqref{eq3},~\eqref{eq3.2},~\eqref{eq4},~\eqref{eq5},~\eqref{eq6},~\text{and}~\eqref{eq10lb}
+		\end{equation*}
+		\begin{alignat*}{2}
+		y_{j,m}^t \in \{0, 1\}, & \qquad \forall t \in T, m \in {\cal M}, j \in {\cal J}^t_{m}, \\
+		y_{m} \in \{0, 1\}, & \qquad \forall m \in \cal M, \\
+		z_k^{\tau}(\omega) \in \{0, 1\}, & \qquad \forall \: \tau \in {\cal T}, k \in {\cal K}^{\tau}(\omega),
+		\end{alignat*}
+		}
+        \item<2->{we obtain a \textbf{valid lower bound} of the problem}
+        \begin{itemize}
+		      \item<3-> Note that we discarded all scenario-dependent packing variables $ x_{dj}(\omega)$
+        \end{itemize}
+		\bigskip
+		\item<4-> The obtained solution of 1st-stage variables $ y_m$ and $y^t_{jm}$ can then be evaluated in the original problem for a set of scenarios $ \tilde{\Omega} \subset \Omega$
+		\begin{itemize}
+			\item<5-> This step provides an \textbf{upper bound} for the \textbf{recourse problem} (RP) evaluation
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\section {Numerical results}
+\begin{frame}%[allowframebreaks]
+	\frametitle{Evaluation deterministic-equivalent ILPs}
+	\begin{itemize}
+		\item<1-> We evaluate the deterministic-equivalent ILPs of the two-stage problem
+		\begin{itemize}
+			\item<1-> \eqref{2s:objf}-\eqref{eq14} (original formulation) and
+			\item<2-> that of the row aggregation lower bound
+		\end{itemize}
+		\bigskip
+		\item<3-> The deterministic-equivalent ILP of~\eqref{2s:objf}-\eqref{eq14} can be solved only for a limited number of scenarios (5, 10, 20)
+		\begin{itemize}
+			%\small
+			\item<4-> Let $ S$ be the set of generated scenario approximating $\Omega$
+		\end{itemize}
+		\bigskip
+		\item<5-> We generate sets of instances of small size 100-200 orders per scenario and 3 suppliers
+		\bigskip
+		\item<6-> To speed up the model resolution we implemented a procedure for the complete enumeration of supplier selections (this is possible due to the small number of suppliers in the instances)
+	\end{itemize}
+\end{frame}
+
+\begin{frame}%[allowframebreaks]
+	\frametitle{Instance generation}
+	Generated instances reflect the following (relevant) characteristics (in blue the new parameters, in black the ones from \cite{crainic2024})
+	\begin{itemize}
+		\small
+		\medskip
+		\item<1-> \textcolor{blue}{Three suppliers, $|{\cal M}| = 3$}
+		\medskip
+		\item<2-> \textcolor{blue}{Select at least two suppliers, $N = 2$, and a minimum volume of bin capacity of 20\%, $\nu = 0.2$}
+		\medskip
+		\item<3-> \textcolor{blue}{With minimum ave. reliability of 80\%, $R = 0.8$}
+		\medskip
+		\item<4-> \textcolor{blue}{Reliability of supplier $ m$ under scenario $ s \in S$ is computed as $\theta_{m}$ drawn from $U(0.7, 0.9)$ and $ \tilde{\theta}^s_m = \theta_m + \varepsilon$ with $  \varepsilon $ drawn from
+		\begin{itemize}
+			\small
+			\item<4->  \textcolor{blue}{$ U(-0.1, 0.1)$, \textbf{low variance} (LV), or}
+			\item<5->  \textcolor{blue}{$ U(-0.3, 0.3)$, \textbf{high variance} (HV)}
+		\end{itemize}}
+		\medskip
+		\item<6-> Nr. of items per scenario drawn from $U(100, 200)$
+		\medskip
+		\item<7-> Three 1st-stage bin types with volumes $ V_t \in \{ \, 50, \, 100, \, 150 \, \}$
+		\medskip
+		\item<8-> Nr. of 2st-stage bins per bin type $ | {\cal J}^t_m | = \lceil \frac{\text{MTVIS}}{V^t} \rceil $; MTVIS is the maximum total volume of items over the generated scenarios $ S$
+		\medskip
+		\item<9-> Nr. of 1st-stage bins per type $ | {\cal K}^t_m |$ drawn from $ U_{\text{int}}( 0.1 | {\cal J}^t_m |, 0.5 | {\cal J}^t_m |)$
+	\end{itemize}
+\end{frame}
+
+\begin{frame}%[allowframebreaks]
+	\frametitle{Instance generation}
+	\begin{itemize}
+%		\footnotesize
+		\item<1-> Aggregated capacity loss of supplier $ m$ under scenario $ s \in S$ is computed as ${\cal L}^s_m = (1 - \tilde{\theta}^s_m) \sum_{i \in I_s} \nu^s_i$ 
+		\bigskip
+		\item<2-> 2nd-stage loss ${\cal V}^s_j$ of 1st-stage bin $ j$ under scenario $ s \in S$, is computed according to two cases
+		\begin{description}
+			\small
+			\item<2-> [\textit{Uniform}:] ${\cal V}^s_j = V^t_m - l^s_m$ with $ l^s_m = \frac{{\cal L}^s_m}{|{\cal J}^t_m|} $
+			\item<3-> [\textit{Localized}:] ${\cal V}^s_j$ is $0$ or $ V^t_m $ such that $ \sum_{j \in {\cal J}^t} {\cal V}^s_j + {\cal L}^s_m = V^t_m |{\cal J}^t| $
+		\end{description}
+		\item<4-> 1st-stage costs
+		\begin{itemize}
+			\item<4-> Contract cost $ f_m = \zeta_m \cdot \nu \cdot \max_{s \in S} \sum_{i \in I_s} \nu^s_i $ with $\zeta_m \sim U(0.1, 0.5)$
+			\item<5-> Contract rates $f^t_m = V^t (1 + \gamma^t_m)$ with $\gamma^t_m \sim U(-0.25,0.25)$
+		\end{itemize}
+		\bigskip
+		\item<5-> 2nd-stage costs	
+		\begin{itemize}
+			\item<5-> Capacity loss cost $c^t_m = 1.25 \frac{f^t_m}{V^t}$ and compensation $r^t_m = \frac{f_m^t}{V^t}$
+			\item<6-> Spot rates $g^t_m = f^t_m (1 + \beta^t_m)$ with 
+			\begin{itemize}
+				\bigskip
+				\item<6-> $\beta^t_m \sim U(0.25, 0.5)$, \textbf{small spread} (SS), or
+				\item<7-> $\beta^t_m \sim U(0.5, 0.75)$, \textbf{large spread} (LS)
+			\end{itemize}
+		\end{itemize}
+	\end{itemize}		
+\end{frame}
+
+\begin{frame}%[allowframebreaks]
+	\frametitle{Numerical experiments}
+	\framesubtitle{Expected Value of Perfect Information (EVPI) and Value of Stochastic Solution (VSS)}
+	\begin{itemize}
+		\small
+		\item<1-> 20 instances for each set, 20 or 120 scenarios for each instance
+		\bigskip
+		\item<2-> All four combinations of low/high variance of supplier reliability (LV/HV) and small/large spread of spot rates (SS/LS) w.r.t. contract rates
+		\bigskip
+		\item<3-> For the WS and EEV computation, the model w/ packing vars does not always solve to optimality the single-scenario problem, but the gap is limited (< 1\%)
+		\begin{itemize}
+			\item<3-> if not optimal, the best bound is taken
+			\item<4-> the same for the RP objective function evaluation
+		\end{itemize}
+		\bigskip
+		\item<5-> All the experiments are run as single thread processes on a PC equipped with a 12th Gen Intel Core i9-12900 3.8GHz, with 32GB of RAM and running Ubuntu 22.04 LTS
+		\bigskip
+		\item<6-> Time-limits are
+		\begin{itemize}
+			\item<6-> 600 sec. for each supplier selection of the complete enumeration procedure, when there is no scenario separation (i.e., EV and RP computation)
+			\item<7->  30 sec. for each supplier selection in the case of scenario separation (i.e., WS and EEV computation)
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[allowframebreaks]
+	\frametitle{Numerical experiments}
+	\framesubtitle{Expected Value of Perfect Information, EVPI, and Value of Stochastic Solution, VSS}
+	Model with packing variables (PV) and model row aggregation (RA)
+%	\begin{itemize}
+%		\item Comparison of model with packing vars vs. row aggregation model
+%		\bigskip
+%		\item 20 instances for each set, 20 scenarios for each instance
+%		\bigskip
+%		\item Instances with uniform loss of bin capacity
+%	\end{itemize}
+%	\bigskip
+	\begin{table}[h!]
+		\centering
+		\footnotesize
+		\begin{tabular}{c c c j f c}
+			\hline
+			Model & 
+			Loss type & 
+			Instance set & 
+			EVPI & 
+			VSS & 
+			RP gap \\
+			\hline
+			PV & U & LV-SS & 2.14\% & \textbf{8.13\%} & 1.75\%  \\
+			PV & U & LV-LS & 5.18\% & 3.58\% & 3.98\% \\
+			PV & U & HV-SS & 4.24\% & \textbf{8.58\%} & 1.43\% \\
+			PV & U & HV-LS & \textbf{7.21\%} & 5.36\% & 4.87\% \\
+			\hline
+			PV & L & LR-SS & 4.98\% & 3.58\% & 4.25\% \\
+			PV & L & LR-LS & \textbf{7.64\%} & 1.98\% & 3.81\% \\
+			PV & L & HR-SS & 4.81\% & 3.83\% & 3.14\% \\
+			PV & L & HR-LS & \textbf{8.43\%} & 2.22\% & 3.08\% \\
+			\hline
+			RA & U & LV-SS & 2.35\% & \textbf{7.84\%} & 0.18\% \\
+			RA & U & LV-LS & 5.60\% & 3.15\% & 0.24\% \\
+			RA & U & HV-SS & 4.42\% & \textbf{8.31\%} & 0.11\% \\
+			RA & U & HV-LS & \textbf{7.68\%} & 4.79\% & 0.33\% \\
+			\hline
+			RA & L & LR-SS & 5.60\% & 2.70\% & 0.00\%  \\
+			RA & L & LR-LS & \textbf{8.33\%} & 1.21\% & 0.00\%  \\
+			RA & L & HR-SS & 5.52\% & 2.97\% & 0.00\% \\
+			RA & L & HR-LS & \textbf{9.09\%} & 1.49\% & 0.00\% \\
+			\hline
+		\end{tabular}
+		\caption{EVPI and VSS evaluation, 20 instances for each set, 20 scenarios; uniform loss (U) or localized loss (L)}
+		\label{tab:optres}
+	\end{table}
+%	\begin{itemize}
+%		\item Instances with uniform loss seem slightly harder to solve
+%		\item For instances with localized loss, the EVPI\% always dominates VSS\%
+%	\end{itemize}
+\end{frame}
+
+\begin{frame}%[allowframebreaks]
+	\frametitle{Numerical experiments}
+	\framesubtitle{Expected Value of Perfect Information, EVPI, and Value of Stochastic Solution, VSS}
+	\begin{itemize}
+		\footnotesize
+		\item<1-> We evaluate the quality of the RP solution we obtain if we inject the RA model solution of 1st-stage variables into model PV
+		\begin{itemize}
+			\item<2-> Note that by doing so we have separation of scenarios and a much faster evaluation
+		\end{itemize}
+		\medskip 
+		\item<3-> The evaluation is done by comparing this RP solution and that of model PV as the gap w.r.t. the best RP bound (PV or RA)
+	\end{itemize}
+	\onslide<4->
+	{
+	\begin{table}[h!]
+		\centering
+		\footnotesize
+		\begin{tabular}{c c j c f c f}
+			\hline
+%			 & PV & RA &  & PV &  & RA &  \\
+			Loss &
+			Set & 
+			Best RP bound & 
+			RP of PV &
+			Gap & 
+			RP injected sol. & 
+			Gap w/ best \\
+			\hline
+			U & LV-SS & 3094.7 & 3146.6 & \textbf{1.68\%} & 3157.2 & 2.02\% \\
+			U & LV-LS & 3370.2 & 3503.9 & 3.97\% & 3402.5 & 0.96\% \\
+			U & HV-SS & 3165.2 & 3210.4 & \textbf{1.43\%} & 3232.5 & 2.13\% \\
+			U & HV-LS & 3225.9 & 3384.7 & 4.92\% & 3260.7 & \textbf{1.08\%} \\
+			\hline
+			L & LV-SS & 2782.9 & 2899.7 & 4.20\% & 2810.2 & \textbf{0.98\%} \\
+			L & LV-LS & 2948.1 & 3060.8 & 3.82\% & 2976.9 & \textbf{0.98\%} \\
+			L & HV-SS & 2815.0 & 2903.4 & 3.14\% & 2841.7 & \textbf{0.95\%} \\
+			L & HV-LS & 2827.4 & 2915.1 & 3.10\% & 2851.9 & \textbf{0.87\%} \\
+			\hline
+		\end{tabular}
+		\caption{RP evaluation, model with packing variables (PV) \textit{vs.} injecting row aggregation (RA) 1-stage solution}
+		\label{tab:optres4}
+	\end{table}
+	}
+\end{frame}
+
+\begin{frame}%[allowframebreaks]
+	\frametitle{Numerical experiments}
+	\framesubtitle{Expected Value of Perfect Information, EVPI, and Value of Stochastic Solution, VSS}	
+	\begin{itemize}
+%		\footnotesize
+		\item<1-> We also evaluate the row aggregation model for a larger set of scenarios; 120 scenarios
+	\end{itemize}
+	\bigskip
+	\onslide<2->
+	{
+	\begin{table}[h!]
+		\centering
+		\footnotesize
+		\begin{tabular}{c c j f c}
+			\hline
+			Loss type & Instance set & EVPI & VSS & RP gap \\
+			\hline
+			U & LV-SS & 2.17\% & \textbf{9.47\%} & 0.15\% \\
+			U & LV-LS & 5.73\% & 5.52\% & 0.40\% \\
+   
+			U & HV-SS & 4.74\% & \textbf{8.92\%} & 0.18\% \\
+			U & HV-LS & \textbf{7.57\%} & 6.45\% & 0.47\% \\
+			\hline
+			L & LV-SS & \textbf{5.80\%} & 2.98\% & 0.00\% \\
+			L & LV-LS & \textbf{8.59\%} & 1.76\% & 0.00\% \\
+   
+			L & HV-SS & \textbf{5.87\%} & 2.52\% & 0.00\% \\
+			L & HV-LS & \textbf{8.84\%} & 1.80\% & 0.00\% \\
+			\hline
+		\end{tabular}
+		\caption{EVPI and VSS evaluation, 120 scenarios; uniform loss (U) localized loss (L)}
+		\label{tab:optres3}
+	\end{table}
+	}
+%	\begin{itemize}
+%		\item Instances with loss uniform over bins seem slightly harder to solve
+%		\item For instances with localized loss, the EVPI\% always dominates VSS\%
+%	\end{itemize}
+\end{frame}
+
+\begin{frame}%[allowframebreaks]
+	\frametitle{Numerical experiments}
+	\framesubtitle{Some considerations}	
+	\begin{itemize}
+		\item<1-> Instances with uniform loss of bin capacity seem to be slightly harder to solve
+		\bigskip
+		\item<2-> For tested instances, characterized by a small number of items, the EVPI and VSS indicators suggest a relevant impact of stochastic optimization for the problem
+		\bigskip
+		\item<3-> The large number of ILP variables due to the several suppliers to select makes the problem hard to solve, meta-heuristic approaches reducing the solution space can be effective
+		\bigskip
+		\item<4-> The tested procedure of 1st-stage variables solution injection suggests promising stochastic solution algorithms allowing separation of scenarios (e.g., progressive-hedging)
+	\end{itemize}
+\end{frame}
+
+\section {What's next?}
+\begin{frame}%[allowframebreaks]
+	\frametitle{Looking the way forward}
+	\begin{itemize}
+		\item<1-> Devise a meta-heuristic solution approach for the selection of suppliers 
+		\bigskip
+		\item<2-> Devise a progressive-hedging algorithm for solving the problem
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[shrink=10]%{References}
+\frametitle{References}
+\begin{columns}
+	\column{0.95\paperwidth}
+	\printbibliography
+\end{columns}
+%\bibliographystyle{authoryear}
+%\begin{thebibliography}{9}
+%\bibitem {bruni2023machine} Maria Elena Bruni, Edoardo Fadda, Stanislav Fedorov, Guido Perboli
+%\textbf{ A machine learning optimization approach for last-mile delivery and third-party logistics},
+%Computers \& Operations Research, Vol. 157, 2023
+%
+%\bibitem {crainic2016logistics} Teodor Gabriel Crainic, Luca Gobbato, Guido Perboli,  Walter Rei
+%\textbf{ Logistics capacity planning: A stochastic bin packing formulation and a progressive hedging meta-heuristic},
+%	European Journal of Operational Research, Vol. 253, No. 2, 2016, pp. 404-417
+%
+%\bibitem {crainic2024} Teodor Gabriel Crainic, Guido Perboli,  Walter Rei, Rosano Mariangela, Veronica Lerma
+%\textbf{ Capacity planning with uncertainty on contract fulfillment},
+%	European Journal of Operational Research, Vol. 314, No. 1, 2024, pp. 152-175
+%
+%\bibitem {perboli2021new} Guido Perboli, Luce Brotcorne, Maria Elena Bruni, Mariangela Rosano
+%\textbf{ Transportation Research Part E: Logistics and Transportation Review},
+%	European Journal of Operational Research, Vol. 145, 2021
+%
+%
+%\end{thebibliography}
+\end{frame}
+
+\begin{frame}
+\frametitle{Goodbye and see you soon, Bernard!!!}
+\includegraphics[width=4cm]{libroBernard.png}
+\end{frame}
+
+
+%\usebackgroundtemplate{%
+%\tikz\node[opacity=1.0] {\includegraphics[height=\paperheight]{thinking.png}};}
+%\begin{frame}[plain]
+%\end{frame}
+%
+%\usebackgroundtemplate{}
+
+\end{document}

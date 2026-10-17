@@ -1,0 +1,822 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[english]{babel}
+\usepackage[shortlabels]{enumitem}
+\usepackage[margin=2.9cm]{geometry}
+\usepackage{url}
+%\usepackage{hyperref}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{scrextend}
+\usepackage{amsthm}
+\usepackage{textcomp}
+\usepackage{eurosym}
+\usepackage{longtable}
+\usepackage{mathrsfs}
+\usepackage[graphicx]{realboxes}
+\usepackage[section]{placeins}
+\usepackage{sectsty}
+\subsectionfont{\normalfont\itshape}
+\subsubsectionfont{\normalfont\itshape}
+
+\usepackage[graphicx]{realboxes}
+\usepackage[section]{placeins}
+\usepackage{sectsty}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{threeparttable}
+
+\newtheorem{assumption}{Assumption}
+\newtheorem*{remark}{Remark}
+
+\usepackage{algorithm,float}
+\usepackage[noend]{algpseudocode}
+
+\usepackage{sectsty}
+\partfont{\LARGE}
+
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+
+\title{ \huge \bfseries Capacity planning problem with suppliers selection and uncertainty on contract fulfillment }
+
+\author
+{
+	Roberto Bargetto,
+	Teodor Gabriel Crainic,
+	Guido Perboli,
+	Walter Rei,
+	Mariangela Rosano
+	
+	%	Roberto Bargetto$^a$, Maria Elena Bruni$^b$, Guido Perboli$^a$, \\
+	%	$ ^a$ DIGEP, Politecnico di Torino, Turin, Italy \\
+}
+\date{}
+
+% Keywords command
+\providecommand{\keywords}[1]
+{
+	{
+		\small	
+		\textbf{\textit{Keywords---}} #1
+	}
+}
+
+\begin{document}
+	\maketitle
+	
+	\section*{Abstract}
+	{
+	\color{blue}
+	We study the problem of a shipper planning the operations of order delivery through carrier supplier companies.
+	Suppliers sell their transportation and storage service at contract rates for planned operations and spot rates for just-in-time operations.
+	Contract rates are typically much cheaper than spot rates.
+	The more the shipper is able to run its operations at contract rates, the more its business is cost-effective and profitable.
+	The shipper needs thus to plan ahead of time the shipping operations to leverage contract rates.
+	However, uncertainty on key factors of decision making characterizes the selection of suppliers at the time of buying at contract rates.
+	At that time, customer orders, supplier capacity loss and the actual spot rates that will be applied are still unknown for manifolds reasons.
+	Carriers can be subject to mechanical failures, undelivered orders can occupy storage centers, as well as global or local events can impact the major trade routes and the related prices.
+	The problem of the shipper is thus to select a set of suppliers to contract with for securing sufficient capacity for cost-effective operations taking into account the aforementioned uncertainties.
+	As risk diversification solution, the shipper covers the risk of supply shortage selecting more than a supplier and minimizing the expected costs of the additional capacity to buy at spot rates and supply shortage events.
+	The time horizon of the shipper's problem is two-stage by definition, the shipper selects the suppliers in the first stage and, in the second stage, ensures that all orders are shipped packing them all into the supplied capacity bought at contract rates or spot rates.
+	The two-stage capacity planning problem of the shipper is a variant of the stochastic variable cost and size bin packing problem that minimizes the expected total cost of the shipper's operations.
+	For this novel problem, we provide a two-stage stochastic integer programming formulation and a solution framework based on state-of-the-art stochastic optimization techniques.
+	}
+	
+	\section{Introduction}
+	Over the recent time, the shipping business has moved from an environment characterized by long-term contracts between professional shippers and carrier suppliers to a more flexible one based on short-term contracts and ``on-spot'' transactions.
+	Such a shift is rooted into the upheaval events that have characterized the recent years and impacted the transportation business and supply chains.
+	Only a couple to mention are the pandemic crisis, with the related production halts, and the war crisis, with the related rise of fuel prices and insurance rates for cargo shipping.
+	Major events like those mentioned, together with other minor events like shortage of drivers, have shaken the market of transportation with the volatility of rates reaching a new higher level.
+	
+	Nowadays, carrier suppliers offer \textit{contract rates} for providing planned transportation and storage services, of typically large and steady quantities, and \textit{spot rates} for ad-hoc transshipment and storing services of variable quantities.
+	Spot rates are usually much more expensive than contract rates, the spread between the prices of the two service modes is large enough to make many shippers forcefully plan ahead in time their operations and resort to services at spot rates only if cost-effective.
+	Rates are intended as the prices applied by suppliers to clients for the use of single carrier units and storage slots (e.g., vehicles, containers, distribution center storage slots).	
+	However, even once operations are accurately planned, disruptive events can turn out impacting the shipper cost of operations.
+	Most common disruption events are the mechanical failure of transportation carriers and undelivered stock clogging the distribution centers or reducing the capacity of freights.
+	
+	In this paper, we consider the problem of a shipper operating in such a volatile environment and seeking for better profit margins on operations.
+	
+	The remainder of the paper is organized as follows.
+	In Section~\ref{s:probdesc}, we define more in detail and formally the shipper's planning problem and, in Section~\ref{s:2stage}, its two-stage stochastic integer programming formulation.
+	In Section~\ref{s:phm}, we describe the solution method we apply for solving the two-stage problem formulation.
+	Finally, Section~\ref{s:nexp} describes and report the outcome of the numerical experiments evaluating the solution method.
+	
+	\section{Problem setting}\label{s:probdesc}
+	The shipper must plan the shipping operations of customer orders expected for the next period of operations and needs the service of carrier suppliers for delivering all the expected orders.
+	Suppliers sell their service through a fleet of carriers and storage locations at contract rates (cheap prices) and spot rates (expensive prices).
+	Contract rates are applied by a supplier for carrying on the shipper's operations if the shipper stipulates an agreement with the supplier ahead in time.
+	The shipper needs thus to select a set of suppliers for leveraging contract rates and resort to spot rates only if cost-effective.
+	
+	At the time of stipulating the contracts with the suppliers, the information the shipper beholds is not complete.
+	The actual prices applied on the spot market (spot rates) are uncertain, the actual demand for orders is unknown, and the capacity that the suppliers will actually deliver is uncertain as well.
+	A supplier may not be able to deliver all the negotiated capacity because of many reasons, like the mechanical failure of a carrier, the presence of undelivered orders into the distribution centers, or other events~\cite{crainic2024capacity}.
+	Thus, the shipper has no certainty to complete its operations paying the suppliers only at contract rates.
+
+	Other costs characterizes the relation between the shipper and the suppliers.
+	The shipper allocates on the stipulation of a contract the cost of accounting, insurance, and negotiation, and on the loss of capacity the cost of managing the orders just in time.
+	Without loss of generality, it is assumed that a supplier applies the same price for carrier units and storage slots of the same type and that a supplier pays a compensation for the not delivered capacity~\cite{Guo2011}.
+	It is assumed also that both the cost and the compensation for capacity loss are proportional to the volume of the capacity not delivered.
+	
+	Hence, the problem of the shipper is to select a set of suppliers to contract with to minimize the expected cost of capacity losses and purchase of additional capacity at spot rates.
+	The shipper quantifies the reliability of a supplier, {i.e.}, its ability to fulfill completely the contract providing all the capacity, with a reliability factor~\cite{Guo2011}.
+	It is also assumed that the shipper diversifies the base of suppliers in the effort of covering the risk of supply shortage.
+	To this end, the shipper targets an average reliability factor, the composition of a large enough portfolio of suppliers, and a supply of capacity balanced enough over the suppliers in portfolio.
+	The shipper defines thus an average \textit{minimum reliability requirement}, a \textit{minimum number of suppliers} to contract with and a minimum percentage volume to buy for each contracted supplier.
+	The minimum percentage volume is intended as the percentage of capacity to buy from a supplier over the total volume to buy from all the supplier in portfolio.
+	
+	The reliability of a supplier is a measure of the capacity that a supplier actually provide with respect to the contracted one.
+	In this paper, the average reliability of a supplier is assumed to be the average percentage of capacity actually provided in the past, i.e., a scalar in [0,1].
+
+	The shipper's problem is two-stage by definition, the shipper selects the suppliers and buys carrier and storage units in the first stage.
+	In the second stage, the shipper ensures that all its orders are shipped packing them all into the capacity actually supplied and bought on the spot market.
+	The second stage of the problem is the recourse action that enables the adjustment of the first stage decisions, i.e., the selection of suppliers and the number of carrier and storage units to buy at contract rates.
+	The problem minimizes the expected total cost of the shipper's operations.
+	
+	The two-stage capacity planning problem of the shipper is a variant of the stochastic variable cost and size bin packing problem.
+	Sticking to the terms used for bin packing problems, shipper's orders are the items to pack and the transportation carriers and storage units are the bins into which items are be packed.
+	In Table~\ref{tab:notation}, we report the notation used in this paper and related to the common terms used for bin packing problems.
+	Next, in Section~\ref{s:2stage}, we provide the two-stage stochastic integer programming formulation of the stochastic variable cost and size bin packing problem modeling the supplier selection.
+	In Section~\ref{s:deteq}, we provide the deterministic equivalent formulation as well.
+	\begin{table}[!ht]
+		%	\footnotesize
+		\centering
+		\begin{tabular}{p{2.5cm}p{10.5cm}}
+			\hline
+			{\textbf{Notation}}  &\textbf{Description}\\
+			\hline
+			\textit{Sets}&\\
+			\hline
+			$\cal M$ & set of suppliers \\%, indexed by $m$\\
+			$T$ & set of types of bin available at the first-stage \\%, indexed by $t$\\
+			$\cal T$ & set of types of bin available at the second-stage \\
+			${\cal J}^{t}_{m}$ & set of bins of type $t \in T$ of supplier $m \in {\cal M}$ \\
+			${\cal J}=\bigcup_{t,m} {\cal J}^{t}_{m}$ & set of all bins available at the first-stage \\
+			$\Omega$ & set of second-stage scenarios \\ 
+			${\cal I}(\omega)$ & set of orders under scenario $ \omega \in \Omega$ \\
+			${\cal K}^{\tau}(\omega)$ & set of bins of type $\tau \in \cal T$ available at spot rates under scenario $ \omega \in \Omega$ \\ % from supplier $ m \in M$ 
+			${\cal K}(\omega) =\bigcup_{\tau, m}{\cal K}^{\tau}_m(\omega)$ & set of all bins available in the spot market under scenario $ \omega \in \Omega$ \\
+			\hline	\textit{Parameters}&\\\hline
+			$f_{m}$ & fixed fee for engaging supplier $m \in \cal{M}$ \\
+			$f^t_m$ & booking cost of a bin of type $t \in T$ of supplier $m \in \cal{M}$ \\
+			$c^t_m$ & cost per unit of volume lost in a bin of type $t \in T$ of supplier $m \in \cal{M}$ \\
+			$r^t_m$ & compensation paid by supplier $m \in \cal{M}$ for not providing a unit of volume in a bin of type $t \in T$ \\ 
+			$V^{t}$ & volume of a bin of type $t \in T$ of supplier $m \in \cal{M}$ \\
+			%$C_m$ & capacity provided by the supplier $m \in \cal{M}$\\
+			$V^{\tau}$ & volume of a bin of type $\tau \in \cal T$ \\
+			$\theta_{m}$ & reliability factor of supplier $m \in \cal{M}$ \\
+			$R$ & minimum average supplier reliability the shipper requires \\
+			$N$ & minimum number of suppliers the shipper requires to contract with \\
+			$\nu$ & minimum percentage of the total volume of bins that the shipper wants to book for each supplier \\ 
+			$v_i(\omega)$ &  volume of item $i \in {\cal I}(\omega)$ under scenario $ \omega \in \Omega$ \\
+			$g^\tau(\omega)$ & cost of a bins of type $\tau \in {\cal T}$under scenario $ \omega \in \Omega$ \\ %  of supplier $ m \in M$ 
+			${\cal V}_{j,m}^t(\omega)$ & volume of bin $j \in {\cal J}^{t}_{m}$ of type $t \in T$ from supplier $m \in \cal M$ under scenario $ \omega \in \Omega$ \\
+			\hline
+			%		\textit{Decision variables}&\\
+			%		\hline
+			%		$y_m \in \{0,1\}$ & first-stage variable equal to 1 if the shipper activates a contract with supplier $m \in {\cal M}$\\
+			%		$y_{j,m}^{t} \in \{0,1\}$ & first-stage variable equal to 1 if bin $j \in {\cal J}^{t}_{m}$ of type $t \in T$ provided by supplier $m \in {\cal M}$ is selected\\
+			%		$z_k^{\tau}(\omega) \in \{0,1\}$ & second-stage variable equal to 1 if bin $k \in {\cal K}(\omega)$ is selected from the spot market\\
+			%		$x_{i,j}(\omega) \in \{0,1\}$ & second-stage decision variable equal to 1 if item $i \in {\cal I}(\omega)$ is packed into bin $j \in {\cal J}$\\
+			%		$x_{i,k}(\omega) \in \{0,1\}$ & second-stage decision variable equal to 1 if item $i \in {\cal I}(\omega)$ is packed into bin $k \in {\cal K}(\omega)$\\
+			%		\hline
+		\end{tabular}
+		\caption{Problem notation}
+		\label{tab:notation}
+	\end{table}
+	
+	{
+	\color{red}
+	\paragraph*{Some questions and ideas that may improve the problem definition and positioning}
+	\begin{enumerate}
+		\item Do we really have to distinguish bin types $ T$ (1st stage) and $\cal T $ (2nd stage)? As then for the experiments is set that $ T \equiv {\cal T}$, why we have this difference in this problem definition?
+		
+		\item It would not be better to say that even the 2nd stage bins are provided by the set of suppliers from which we select those to contract with?
+		
+		\item Should we define two (or more) supplier types characterized by a different price structure? \\
+		\begin{itemize}
+			\item For example, a type of supplier offering competitive (very cheap) contract rates, but spot rates much above the average prices and a type of supplier characterized by a small difference between contract and spot rates
+		\end{itemize}
+		\item In the case of two types of supplier, should we correlate the availability of bins at the 2nd stage to the supplier type?
+		\begin{itemize}
+			\item It may be that the supplier selling at very cheap rates on contract, has a limited availability of bins on spot
+		\end{itemize}
+		\item From the point of view of the numerical experiments, my guess is that instances with no suppliers types (randomly uniform data) are those harder to solve, but studying a bit in the direction of supplier types may be interesting and cover some real-world aspects.
+		
+		\item A NOTE:
+		I think introducing a set of supplier types in the problem definition will make heavier a problem that has already a lot of data and can make the text harder to read.
+		If we will consider supplier types, it can be a thing we simply describe as a set of instance with given characteristics (the way the instances are generated can be extended for this easily enough).
+	\end{enumerate}
+	}
+	
+	\section{Two-stage stochastic programming formulation}\label{s:2stage}
+	In this section, we provide the two-stage stochastic integer linear programming formulation with recourse for the supplier selection problem.
+	See Table~\ref{tab:notation} for the notation used.
+	
+	Let $\cal{M}$ be the set of suppliers available for negotiating an agreement with the shipper.
+	The shipper wants to select a minimum number $N$ of suppliers such that $ N \le |\cal{M}|$.
+	Let ${f_{m}}$ be the cost the shipper allocates for closing an agreement with supplier $ m$ and $\theta_{m}$ the reliability factor of supplier $m \in \cal{M}$.
+	The scalar $R$ is the average supplier reliability that the shipper wishes as a minimum value prior to generating its supplier selection plan.
+	
+	Selecting a set of suppliers in $\cal{M}$, the shipper buys also the bins that each supplier is expected to provide on time.
+	Let $T$ be the set of bin types available for the shipper $m \in \cal{M}$. % contracting a supplier 
+	Volume $V^{t}$ characterizes a bin of type $ t \in T$ and each supplier $m \in \cal M$ provides to the shipper a bin of type $ t \in T$ at cost $f_{m}^{t}$, i.e., at the supplier's contract rate.
+	Let ${\cal J}^t_m$ be the set of bins of type $ t \in T$ that the supplier $ m \in \cal{M}$ can provide to the shipper.
+	The set ${\cal J} = \bigcup_{t,m} {\cal J}^{t}_{m}$ is thus the set all bins of the supplier $m \in \cal{M}$.
+	At the operation time, the set of bin types available on the spot market is ${\cal T}$.
+	Volume $V^{\tau}$ characterizes bins of type $\tau \in \cal{T}$.
+	For a bin of type $t \in T$, let $r_{m}^t$ be the compensation per unit of volume that the supplier $m \in \cal M$ pays to the shipper for the capacity not provided and $c_{m}^t$ the cost per unit of volume that the shipper faces for managing the capacity loss in the second-stage.
+	
+	We denote with $\Omega$ the set of all possible future scenarios of orders received by the shipper, capacity delivered by the suppliers, bins available in the spot market, and prices applied on the spot market, i.e., the future spot rates of suppliers.
+	This is the information revealed in the problem second-stage.
+	A scenario realization $\omega \in \Omega$ is fully described with:
+	\begin{itemize}
+		\item ${\cal I}(\omega)$, the set of orders the shipper receives for delivery, 
+		\item $v_i(\omega)$, the volume of the order $i \in {\cal I}(\omega)$,
+		\item ${\cal V}_{j,m}^t(\omega)$, the actual volume of bin $j \in {\cal J}^{t}_{m}$ of type $t \in T$ from the supplier $m \in \cal{M}$, 
+		\item ${\cal K}^{\tau}(\omega)$, the set of available bins of type $\tau \in \cal T$ in the spot market, % ${\cal K}(\omega) =\bigcup_{\tau}{\cal K}^{\tau}(\omega)$.
+		\item $g^{\tau}(\omega)$, the spot rate for a bins of type $\tau \in {\cal T}$.
+	\end{itemize}
+	Let the parameters of the scenario $\omega \in \Omega$ be collected in the vector of scalars $\xi(\omega)$.
+	%The vector $\xi$ contains the stochastic parameters defined in the model, and $\xi(\omega)$ is a given realization of this random vector
+	
+	Without loss of generality, we make the following assumption on the problem data.
+	\begin{enumerate}
+		\item We assume that $V^{t} \ge {\cal V}_{j,m}^t(\omega) \; \forall \; t \in T, m \in {\cal M}, \omega \in \Omega $ always.
+		\item We assume that $c_{m}^t \ge r_{m}^t \; \forall \; t \in T, m \in \cal{M}$ always.
+	\end{enumerate}
+	
+	The two-stage stochastic problem formulation considers first-stage decisions:
+	(\textit{i}) selecting the suppliers among $ {\cal M}$ to contract with for planning the operations and
+	(\textit{ii}) booking the bins of the various types $ T$ from the selected suppliers in $ {\cal M}$.
+	Second-stage decisions are:
+	(\textit{iii}) buying on the spot market the additional bins required for packing all the shipper's orders and
+	(\textit{iv}) packing all the shipper's orders into the available bins (those bought at contract rates and those bought at spot rates).
+	%These recourse actions are carried out to cope with both fluctuations on the demand side and unfavorable situations on the supply side (\textit{e.g.}, mechanical failures or damage of vehicles), \textit{i.e.}, \textit{random events}, which make the booked capacity not sufficient or not available. 
+	%volumes and fixed costs to move or store the estimated demand of items, in a certain planning horizon
+	%taken at the operations time when the actual demand and the actual volume of the contracted capacity are revealed. 
+	
+	Let's thus define the variables of the two-stage problem formulation.
+	First-stage variables are:
+	\begin{description}
+		\item [$y_m$] a binary variable that takes value 1 if the supplier $m \in {\cal M}$ is selected to contract with; 0 otherwise.
+		\item [$y_{j,m}^{t}$] a binary variable that takes value 1 if the shipper buys the bin $ j \in {\cal J}^{t}_{m}$ that is of type $ t \in T$ and from supplier $m \in {\cal M}$; 0 otherwise.
+	\end{description}
+	Second-stage variables are, for a scenario $ \omega \in \Omega$:
+	\begin{description}
+		\item[$z_k^{\tau}(\omega)$] a binary variable that takes value 1 if the shipper buys the bin $ k \in {\cal K}(\omega)$ of type $ \tau \in {\cal T}$ on the spot market; 0 otherwise.
+		\item[$ x_{i,j}(\omega)$] a binary variable that takes value 1 if order $ i \in I(\omega)$ is packed into the bin $ j \in \{{\cal J} \cup {\cal K}(\omega)\}$; 0 otherwise.
+		%	\item[$ x_{i,k}(\omega)$] a binary variable that takes value 1 if 
+	\end{description}	
+	The two-stage ILP formulation reads:
+	\begin{equation}
+		\label{2s:objf}
+		\min_{y} \sum\limits_{m \in \cal M} {f_{m}}y_{m} +  \sum\limits_{t \in T} \sum\limits_{m \in {{\cal M}}} \sum\limits_{j \in {\cal J}_{m}^t} f_{m}^t y_{j,m}^t  + \emph{E}_{\xi}\left[Q \left(y,\xi(\omega)\right)\right] 
+	\end{equation}
+	\noindent \textit{subject to}
+	\begin{alignat}{2}
+		%	y_{j,m}^{t} \geq y_{j+1,m}^{t}, & \qquad \forall t \in T, m \in {\cal M}, j=1,\ldots,\vert{\cal J}^{t}_{m}\vert-1,
+		%	\label{eq2}\\
+		\sum\limits_{m \in \cal {M}} y_{m}\geq{N}, & \qquad
+		\label{eq3}\\
+		\sum\limits_{t \in T} \sum\limits_{j \in {\cal J}^t_{m}} V_{m}^{t} \ y_{j,m}^{t} \geq \nu \sum\limits_{t \in T} \sum\limits_{m \in {\cal M}} \sum\limits_{j \in {\cal J}^t_{m}} V_{m}^{t} \ y_{j,m}^{t}, & \qquad \forall m \in {\cal M}
+		\label{eq3.2}\\
+		%	\sum\limits_{t \in T} \sum\limits_{j \in {\cal J}^t_{m}} V_{m}^{t} \ y_{j,m}^{t} \geq \nu \sum\limits_{t \in T} \sum\limits_{j \in {\cal J}^t_{m}} V_{m}^{t} \ y_{m}, & \qquad \forall m \in {\cal M}
+		%	\label{eq3.2}\\
+		\sum\limits_{m \in {{\cal M}}} \ \theta_{m} \ y_{m}  \geq {R} \sum\limits_{m \in {\cal M}} \ y_{m}, & \qquad \label{eq4}\\
+		%	\sum\limits_{t \in T} \sum\limits_{m \in {{\cal M}}} \sum\limits_{j \in {\cal J}^t_{m}}  {V}_{m}^t \ \theta_{m} \ y_{j,m}^t  \geq {R} {\sum\limits_{t \in T} \sum\limits_{m \in {\cal M}} \sum\limits_{j \in {\cal J}^t_{m}}  {V}_{m}^t \ y_{j,m}^t}, & \qquad \label{eq4}\\
+		%\sum\limits_{t \in T}  \sum\limits_{j \in {\cal J}^t_{m}}  {V}_{m}^t \ \theta_{m} \ y_{j,m}^t  \geq {R} {\sum\limits_{t \in T} \sum\limits_{j \in {\cal J}^t_{m}}  {V}_{m}^t \ y_{j,m}^t}, & \qquad \forall m \in M \label{eq4_2}\\
+		%  & y_{j,m}^t\leqy_{m} & \forall t \in T, m \in M, j \in {\cal J}^
+		\sum\limits_{t \in T} \sum\limits_{j \in {\cal J}^t_{m}} y_{j,m}^{t} \leq y_{m}, & \qquad \forall m \in \cal M, \label{eq5}\\
+		y_{j,m}^t \in \{0, 1\}, & \qquad \forall t \in T, m \in {\cal M}, j \in {\cal J}^t_{m}, \label{eq6}\\
+		y_{m} \in \{0, 1\}, & \qquad \forall m \in \cal M \label{eq7},
+	\end{alignat}
+	\noindent where  
+	\begin{equation}
+		\begin{split}
+			Q \left(y,\xi (\omega)\right) = & \min_{z(\omega), x(\omega)} 
+			\sum\limits_{\tau \in \cal T}\sum\limits_{k \in \cal K^{\tau}(\omega)} g^{\tau}(\omega) z_k^{\tau}(\omega) \; + \\
+			& + \sum\limits_{t \in T} \sum\limits_{m \in {\cal M}} \sum\limits_{j \in {\cal J}^t_{m}} (c_{m}^t-r_{m}^t)(V^{t} - {\cal V}_{j,m}^t(\omega)) y_{j,m}^t \label{eq8}
+		\end{split}
+	\end{equation}
+	\noindent \textit{subject to}
+	\begin{alignat}{2}
+		\sum\limits_{j \in \cal J}x_{i,j}(\omega) + \sum\limits_{k \in \cal K (\omega)}x_{i,k}(\omega) = 1, & \qquad \forall i \in \cal I(\omega), \label{eq9}\\
+		\sum\limits_{i \in \cal I(\omega)}v_i(\omega)x_{i,j}(\omega) \leq {\cal V}_{j,m}^t(\omega) y_{j,m}^t, & \qquad \forall \: t \in T, m\in{{\cal M}}, j \in {\cal J}^t_{m}, \label{eq10}\\
+		\sum\limits_{i \in \cal I(\omega)}v_i(\omega)x_{i,k}(\omega) \leq V^\tau z^{\tau}_k(\omega), & \qquad \forall \: \tau \in {\cal T}, k \in {\cal K}^{\tau}(\omega), \label{eq11}\\
+		x_{i,j}(\omega) \in \{0, 1\}, & \qquad \forall \: i \in {\cal I}(\omega), j \in {\cal J}, \label{eq12}\\
+		x_{i,k}(\omega) \in \{0, 1\}, & \qquad \forall \: i \in {\cal I}(\omega), k \in \cal K(\omega), \label{eq13}\\
+		z_k^{\tau}(\omega) \in \{0, 1\}, & \qquad \forall \: \tau \in {\cal T} , k \in {\cal K}^{\tau}(\omega). \label{eq14}
+	\end{alignat}
+	The objective function~\eqref{2s:objf} minimizes the total cost for planning the operations.
+	The total cost includes that for contracting with the selected suppliers, the total cost of bins to buy at contract rates, and the expected cost due to the decisions of the problem second-stage, \textit{i.e.}, the term $Q \left(y,\xi (\omega)\right)$.
+	%Constraints~\eqref{eq2} breaks the symmetry that usually characterizes packing problems~\cite{crainicetal2021wip} ensuring an order in the selection of bins of type $t \in T$ from the supplier $m \in \cal M$, i.e., the bin $j \in {\cal J}^{t}_{m}$ can be selected at the first stage only if bin $j-1 \in {\cal J}^{t}_{m}$ has already been selected
+	Constraint~\eqref{eq3} enforces that at least $N$ suppliers are selected to contract with for the shipper's operations.
+	Constraints~\eqref{eq3.2} enforce, with respect to the total capacity the shipper books, that at least a minimum percentage $ \nu$ of capacity from each selected supplier is booked.
+	Constraints~\eqref{eq4} guarantee that the average reliability due to the selected suppliers is at least $ R$.
+	Constraints~\eqref{eq5} enforce booking only bins from the selected suppliers.
+	With~\eqref{eq6} and~\eqref{eq7}, we define the domain of first-stage problem variables.
+	
+	The problem second-stage objective function~\eqref{eq8} minimizes, over scenarios $ \Omega$, the average total cost of the operations.
+	For each scenario $ \omega \in \Omega$ of operations, the total cost includes the cost of bins bought on the spot market, the capacity loss cost, and the compensation cost paid by suppliers for the capacity not provided.
+	Constraint~\eqref{eq9} ensures that each item is packed into a single bin.
+	Constraints~\eqref{eq10} and~\eqref{eq11} ensure that the total volume of items packed into each bin does not exceed the bin volume.
+	Finally, constraints 
+	With~\eqref{eq12},~\eqref{eq13} and~\eqref{eq14} we define the domain of the second-stage variables of the problem formulation.
+	
+	\subsection{Deterministic equivalent formulation and problem lower bound}\label{s:deteq}
+	In this section, we provide the deterministic equivalent formulation of the two-stage stochastic programming formulation of Section~\ref{s:2stage}.
+	We obtain the deterministic formulation by considering a finite number of scenarios ${\cal S}$ in place of $ \Omega$.
+	Each scenario $s \in {\cal S}$ has probability $p^{s}$ and $\sum_{s \in {\cal S}} p^{s} = 1$. 
+	Let thus ${\cal I}^{s}$, ${\cal K}^{\tau,s}$ and ${\cal K}^{s}$ replace ${\cal I}(\omega)$, ${\cal K}^{\tau}(\omega)$ and ${\cal K}(\omega)$ respectively, as well as $v_i^{s}$, $g^{\tau,s}$ and ${\cal V}_{j,m}^{t,s}$ replace $v_i(\omega)$, $g^\tau(\omega)$ and ${\cal V}_{j,m}^t(\omega)$ respectively.
+	
+	In the deterministic equivalent formulation, scenario-dependent variables are, for the scenario $ s \in {\cal S}$: 
+	\begin{description}
+		\item[$z_k^{\tau,s}$] a binary variable that takes value 1 if the shipper buys the capacity of bin $ k \in {\cal K}^s$ of type $ \tau \in {\cal T}$ on the spot market; 0 otherwise.
+		\item[$ x_{i,j}^{s}$] a binary variable that takes value 1 if order $ i \in I^s$ is packed into the bin $ j \in \{{\cal J} \cup {\cal K}^s\}$; 0 otherwise.
+		%	\item[$ x_{i,k}^{s}$] a binary variable that takes value 1 if 
+	\end{description}	
+	
+	The MILP reads:
+	\begin{equation}
+		\begin{split}
+			\min_{y,z,x} & \sum_{m \in \cal M} {f_{m}}y_{m} +  \sum_{t \in T} \sum_{m \in {{\cal M}}} \sum_{j \in {\cal J}_{m}^t} f_{m}^t y_{j,m}^t + \\
+			& + \sum_{s \in \cal S} p^{s} \biggl [ \sum_{\tau \in \cal T} \sum_{k \in {\cal K}^{\tau,s}} g^{\tau,s} z_k^{\tau,s} + \sum_{t \in T} \sum_{m \in {\cal M}} \sum_{j \in {\cal J}^t_{m}} (c_{m}^t-r_{m}^t)(V^{t} - {\cal V}_{j,m}^{t,s}) y_{j,m}^t \biggr] \label{eq:dep:obj}
+		\end{split}
+	\end{equation}
+	\textit{subject to}
+	\begin{alignat}{2}
+		%	y_{j,m}^{t} \geq y_{j+1,m}^{t}, & \qquad \forall t \in T, m \in {\cal M}, j=1,\ldots,\vert{\cal J}^{t}_{m}\vert-1,
+		%	\label{eq:dep:2}\\
+		\sum\limits_{m \in \cal {M}} y_{m}\geq{N}, & \qquad
+		\label{eq:dep:3}\\
+		\sum\limits_{t \in T} \sum\limits_{j \in {\cal J}^t_{m}} V_{m}^{t} \ y_{j,m}^{t} \geq \nu \sum\limits_{t \in T} \sum\limits_{m \in {\cal M}} \sum\limits_{j \in {\cal J}^t_{m}} V_{m}^{t} \ y^t_{j,m}, & \qquad \forall m \in {\cal M}
+		\label{eq:dep:3.2}\\
+		\sum\limits_{m \in {\cal M}} \theta_{m} \ y_{m} \geq R \sum\limits_{m \in {\cal M}} y_{m}, & \qquad \label{eq:dep:4}\\
+		\sum\limits_{t \in T} \sum\limits_{j \in {\cal J}^t_{m}} y_{j,m}^{t} \leq y_{m}, & \qquad \forall m \in \cal M, \label{eq:dep:5}\\
+		\sum\limits_{j \in \cal J}x_{i,j}^{s} + \sum\limits_{k \in {\cal K}^{s}}x_{i,k}^{s} = 1, & \qquad \forall s \in {\cal S}, i \in {\cal I}^{s}, \label{eq:dep:9}\\
+		\sum\limits_{i \in {\cal I}^{s}}v_i^{s} x_{i,j}^{s} \leq {\cal V}_{j,m}^{t,s} y_{j,m}^t, & \qquad \forall \: s \in {\cal S}, t \in T, m\in{{\cal M}}, j \in {\cal J}^t_{m}, \label{eq:dep:10}\\
+		\sum\limits_{i \in {\cal I}^{s}} v_i^{s} x_{i,k}^{s} \leq V^{\tau} z_k^{\tau,s}, & \qquad \forall \: s \in {\cal S}, \tau \in {\cal T}, k \in {\cal K}^{\tau,s}, \label{eq:dep:11}\\
+		y_{j,m}^t \in \{0, 1\}, & \qquad \forall t \in T, m \in {\cal M}, j \in {\cal J}^t_{m}, \label{eq:dep:6}\\
+		y_{m} \in \{0, 1\}, & \qquad \forall m \in \cal M \label{eq:dep:7}\\
+		x_{i,j}^{s} \in \{0, 1\}, & \qquad \forall \: s \in {\cal S}, i \in {\cal I}^{s}, j \in {\cal J}, \label{eq:dep:12}\\
+		x_{i,k}^{s} \in \{0, 1\}, & \qquad \forall \: s \in {\cal S}, i \in {\cal I}^{s}, k \in {\cal K}^{s}, \label{eq:dep:13}\\
+		z_k^{\tau,s} \in \{0, 1\}, & \qquad \forall \: s \in {\cal S}, \tau \in {\cal T} , k \in {\cal K}^{\tau,s}. \label{eq:dep:14}
+	\end{alignat}
+	The Objective function~\eqref{eq:dep:obj} minimizes all costs considering all the possible realization of the scenarios weighted by their probability instead of the expected value. 
+	From constraints~\eqref{eq:dep:3} to constraints~\eqref{eq:dep:5} the formulation is the same as the first-stage of the stochastic formulation.
+	Constraints of the second-stage are rewritten using variables $z_k^{\tau,s}$, $ x_{i,j}^{s}$, and $ x_{i,k}^{s}$, \textit{i.e.}, constraints~\eqref{eq:dep:9}-\eqref{eq:dep:11}.
+	With~\eqref{eq:dep:6}-\eqref{eq:dep:14}, we define the domain of the variables.
+
+	This LB formulation is used for computing a problem LB and initial feasible solution of 1st stage variables through a procedure that is described later in Section~\ref{ss:initproc}.
+	
+	
+	\subsection{A lower-bound for the problem}\label{ss:problb}
+	We define a LB for the solution of the deterministic equivalent formulation (that of Section~\ref{s:deteq}) by means of row aggregation.
+	According to the aggregation scheme, constraints~\eqref{eq:dep:9} are replaced with
+	\begin{equation}\label{eq:dep:9:surr}
+		\sum\limits_{i \in {\cal I}^{s}} \left( \sum\limits_{j \in \cal J}x_{i,j}^{s} + \sum\limits_{k \in {\cal K}^{s}}x_{i,k}^{s} \right) = | {\cal I}^{s}|, \qquad \forall s \in {\cal S}.
+	\end{equation}
+	and constraints~\eqref{eq:dep:10} with
+	\begin{equation}\label{eq:deplb:10:surr}
+		\sum\limits_{\substack{j \in \{\bigcup_{m \in {\cal M}} {\cal J}^t_{m}\} \cup {\cal K}^{\tau,s}, \\ i \in {\cal I}^{s}}} v_i^{s} x_{i,j}^{s} 
+		\leq \sum\limits_{\substack{ m \in {\cal M}, \\ t \in T, \\ j \in {\cal J}^t_{m}}} {\cal V}_{j,m}^{t,s} y_{j,m}^t + \sum\limits_{\substack{\tau \in {\cal T}, \\ k \in {\cal K}^{\tau,s}}} V^{\tau} z_k^{\tau,s}, \qquad \forall \: s \in {\cal S}.
+	\end{equation}
+	We observe that the left-hand side of inequality~\eqref{eq:deplb:10:surr} is a constant terms, \textit{i.e.}, the total volume of orders $ I^s$ under scenario $ s \in S$; let $ \Upsilon^s$ denote this total volume.
+	
+	Replacing the left-hand side of the inequality with the constant term $ \Upsilon^s$, the surrogate constraints~\eqref{eq:dep:9:surr} become unnecessary and we can drop the binary variables $x_{i,j}^{s}$ and $ x_{i,k}^{s}$.
+	The ILP formulation for the LB reads thus:
+	\begin{equation*}
+	\begin{split}
+		\min_{y,z,x} & \sum_{m \in \cal M} {f_{m}}y_{m} +  \sum_{t \in T} \sum_{m \in {{\cal M}}} \sum_{j \in {\cal J}_{m}^t} f_{m}^t y_{j,m}^t + \\
+		& + \sum_{s \in \cal S} p^{s} \biggl [ \sum_{\tau \in \cal T} \sum_{k \in {\cal K}^{\tau,s}} g^{\tau,s} z_k^{\tau,s} + \sum_{t \in T} \sum_{m \in {\cal M}} \sum_{j \in {\cal J}^t_{m}} (c_{m}^t-r_{m}^t)(V^{t} - {\cal V}_{j,m}^{t,s}) y_{j,m}^t \biggr]
+	\end{split}
+	\end{equation*}
+	\textit{subject to}
+	\begin{equation*}
+		\eqref{eq:dep:3}, \, \eqref{eq:dep:3.2}, \, \eqref{eq:dep:4}, \, \eqref{eq:dep:5},
+	\end{equation*}
+	\begin{alignat}{2}		
+%		\sum\limits_{i \in {\cal I}^{s}} \left( \sum\limits_{j \in \cal J}x_{i,j}^{s} + \sum\limits_{k \in {\cal K}^{s}}x_{i,k}^{s} \right) = | {\cal I}^{s}|, & \qquad \forall s \in {\cal S}, \label{eq:deplb:9} \\
+%		\sum\limits_{\substack{j \in \{\bigcup_{m \in {\cal M}} {\cal J}^t_{m}\} \cup {\cal K}^{\tau,s}, \\ i \in {\cal I}^{s}}} v_i^{s} x_{i,j}^{s} 
+		\Upsilon^s
+		\leq \sum\limits_{\substack{ m \in {\cal M}, \\ t \in T, \\ j \in {\cal J}^t_{m}}} {\cal V}_{j,m}^{t,s} y_{j,m}^t + \sum\limits_{\substack{\tau \in {\cal T}, \\ k \in {\cal K}^{\tau,s}}} V^{\tau} z_k^{\tau,s}, & \qquad \forall \: s \in {\cal S},\label{eq:deplb:10}
+	\end{alignat}
+	\begin{alignat*}{2}		
+		y_{j,m}^t \in \{0, 1\}, & \qquad \forall t \in T, m \in {\cal M}, j \in {\cal J}^t_{m},\\
+		y_{m} \in \{0, 1\}, & \qquad \forall m \in \cal M \\
+%		x_{i,j}^{s} \in \{0, 1\}, & \qquad \forall \: s \in {\cal S}, i \in {\cal I}^{s}, j \in {\cal J}, \\
+%		x_{i,k}^{s} \in \{0, 1\}, & \qquad \forall \: s \in {\cal S}, i \in {\cal I}^{s}, k \in {\cal K}^{s},\\
+		z_k^{\tau,s} \in \{0, 1\}, & \qquad \forall \: s \in {\cal S}, \tau \in {\cal T} , k \in {\cal K}^{\tau,s}.
+	\end{alignat*}
+	The objective function~\eqref{eq:dep:obj} is unchanged, as well as the domain of the problem variables.
+	The LB formulation includes only the binary variables for selecting suppliers and bins.
+	
+	The problem solution of binary variables $ y_m$, $ y_{j,m}^t$, and $ z_k^{\tau,s}$, obtained computing the LB, provides also a partial solution of model~\eqref{eq:dep:obj}-\eqref{eq:dep:14} that is usable as warm-start solution for searching the optimal one.
+	
+	\section{Progressive-hedging solution method}\label{s:phm}
+	In order to apply the PH method, we make separable the deterministic equivalent problem formulation indexing over scenarios $ S$ first-stage variables $ y_m$ and $ y^t_{j,m}$, and introducing a set of binary variables representing a \textit{global solution} of the problem.
+	Let $ \bar{y}_m$ and $ \bar{y}^t_{j,m}$ be respectively the global solution for the supplier selection and the global solution for first-stage bin selection.
+	Lat also $ y^s_m$ and $y^{t,s}_{j,m}$ be the scenario dependent binary variables for, respectively, the supplier and bin selection.
+	We rewrite thus the deterministic equivalent formulation as
+	\begin{equation}
+	\begin{split}
+		\min_{y,z,x} \sum_{s \in \cal S} p^{s} \biggl[ & \sum_{m \in \cal M} {f_{m}} y^s_{m} +  \sum_{t \in T} \sum_{m \in {{\cal M}}} \sum_{j \in {\cal J}_{m}^t} f_{m}^t y^{t,s}_{j,m} + \\
+		& + \sum_{\tau \in \cal T} \sum_{k \in {\cal K}^{\tau,s}} g^{\tau,s} z_k^{\tau,s} + \sum_{t \in T} \sum_{m \in {\cal M}} \sum_{j \in {\cal J}^t_{m}} (c_{m}^t-r_{m}^t)(V^{t} - {\cal V}_{j,m}^{t,s}) y^{t,s}_{j,m} \biggr] \label{eq:depph:obj}
+	\end{split}
+	\end{equation}
+	\textit{subject to}
+	\begin{alignat}{2}
+		%	y_{j,m}^{t} \geq y_{j+1,m}^{t}, & \qquad \forall t \in T, m \in {\cal M}, j=1,\ldots,\vert{\cal J}^{t}_{m}\vert-1,
+		%	\label{eq:dep:2}\\
+		\sum\limits_{m \in \cal {M}} y^s_{m}\geq{N}, & \qquad
+		\label{eq:depph:3}\\
+		\sum\limits_{t \in T} \sum\limits_{j \in {\cal J}^t_{m}} V_{m}^{t} \ y^{t,s}_{j,m} \geq \nu \sum\limits_{t \in T} \sum\limits_{m \in {\cal M}} \sum\limits_{j \in {\cal J}^t_{m}} V_{m}^{t} \ y^{t,s}_{j,m}, & \qquad \forall m \in {\cal M}
+		\label{eq:depph:3.2}\\
+		\sum\limits_{m \in {\cal M}} \theta_{m} \ y^s_{m} \geq R \sum\limits_{m \in {\cal M}} y^s_{m}, & \qquad \label{eq:depph:4}\\
+		\sum\limits_{t \in T} \sum\limits_{j \in {\cal J}^t_{m}} y^{s,t}_{j,m} \leq y^s_{m}, & \qquad \forall m \in \cal M, \label{eq:depph:5}\\
+		\sum\limits_{j \in \cal J}x_{i,j}^{s} + \sum\limits_{k \in {\cal K}^{s}}x_{i,k}^{s} = 1, & \qquad \forall s \in {\cal S}, i \in {\cal I}^{s}, \label{eq:depph:9}\\
+		\sum\limits_{i \in {\cal I}^{s}}v_i^{s} x_{i,j}^{s} \leq {\cal V}_{j,m}^{t,s} y^{s,t}_{j,m}, & \qquad \forall \: s \in {\cal S}, t \in T, m\in{{\cal M}}, j \in {\cal J}^t_{m}, \label{eq:depph:10}\\
+		\sum\limits_{i \in {\cal I}^{s}} v_i^{s} x_{i,k}^{s} \leq V^{\tau} z_k^{\tau,s}, & \qquad \forall \: s \in {\cal S}, \tau \in {\cal T}, k \in {\cal K}^{\tau,s}, \label{eq:depph:11}\\
+		\bar{y}_{m} = y^{s}_{m} & \qquad \forall \: s \in {\cal S}, m \in {\cal M}, \label{eq:depph:nas}\\
+		\bar{y}^t_{j,m} = y^{s,t}_{j,m} & \qquad \forall \: s \in {\cal S}, \forall t \in T, m \in {\cal M}, j \in {\cal J}^t_{m}, \label{eq:depph:nab}\\
+		\bar{y}^{t}_{j,m} \in \{0, 1\}, & \qquad \forall \: t \in T, m \in {\cal M}, j \in {\cal J}^t_{m}, \label{eq:depph:6.1}\\
+		\bar{y}_{m} \in \{0, 1\}, & \qquad \forall \: m \in \cal M \label{eq:depph:7.1}\\
+		y^{s,t}_{j,m} \in \{0, 1\}, & \qquad \forall \: s \in {\cal S}, \forall t \in T, m \in {\cal M}, j \in {\cal J}^t_{m}, \label{eq:depph:6}\\
+		y^s_{m} \in \{0, 1\}, & \qquad \forall \: s \in {\cal S}, \forall m \in \cal M \label{eq:depph:7}\\
+		x_{i,j}^{s} \in \{0, 1\}, & \qquad \forall \: s \in {\cal S}, i \in {\cal I}^{s}, j \in {\cal J}, \label{eq:depph:12}\\
+		x_{i,k}^{s} \in \{0, 1\}, & \qquad \forall \: s \in {\cal S}, i \in {\cal I}^{s}, k \in {\cal K}^{s}, \label{eq:depph:13}\\
+		z_k^{\tau,s} \in \{0, 1\}, & \qquad \forall \: s \in {\cal S}, \tau \in {\cal T} , k \in {\cal K}^{\tau,s}. \label{eq:depph:14}
+	\end{alignat}
+	The model is essentially as model~\eqref{eq:dep:obj}-~\eqref{eq:dep:14}, but with variables of first-stage decisions indexed also over scenarios $ S$ and added the non-anticipativity constraints~\eqref{eq:depph:nas} and~\eqref{eq:depph:nab}.
+	{\color{blue} Namely, constraints~\eqref{eq:depph:nas} and~\eqref{eq:depph:nab} enforce scenario-dependent variables taking the same solution of the first stage solution over all the scenario.
+	Accordingly with the standard progressive-hedging method~\cite{rockafellar1991scenarios}, these constraints are necessary for developing the augmented Lagrangian decomposition described in the next section.}
+	
+	\subsection{Augmented Lagrangian decomposition}
+	Following the decomposition scheme of~\cite{rockafellar1991scenarios}, we relax constraints~\eqref{eq:depph:nas} and~\eqref{eq:depph:nab} by means of the augmented Lagrangian decomposition method obtaining the objective function
+	\begin{equation}
+	\begin{split}
+		\min_{y,z,x} \sum_{s \in \cal S} p^{s} \biggl[ & \sum_{m \in \cal M} {f_{m}} y^s_{m} +  \sum_{t \in T} \sum_{m \in {{\cal M}}} \sum_{j \in {\cal J}_{m}^t} f_{m}^t y^{t,s}_{j,m} + \\
+		& + \sum_{\tau \in \cal T} \sum_{k \in {\cal K}^{\tau,s}} g^{\tau,s} z_k^{\tau,s} + \sum_{t \in T} \sum_{m \in {\cal M}} \sum_{j \in {\cal J}^t_{m}} (c_{m}^t-r_{m}^t)(V^{t} - {\cal V}_{j,m}^{t,s}) y^{t,s}_{j,m} + \\
+		& + \sum\limits_{m \in {\cal M}} \lambda^s_m \left( y^s_m - \bar{y}_m \right) + \sum\limits_{m \in {\cal M}} \sum\limits_{t \in T} \sum\limits_{j \in {\cal J}_{m}^t} \lambda^{s,t}_{j,m} \left( y^{s,t}_{j,m} - \bar{y}^t_{j,m} \right) + \\
+		& + \frac{1}{2} \sum\limits_{m \in {\cal M}} \rho_m \left( y^s_m - \bar{y}_m \right)^2 + \frac{1}{2} \sum\limits_{m \in {\cal M}} \sum\limits_{t \in T} \sum\limits_{j \in {\cal J}_{m}^t} \rho^{t}_{j,m} \left( y^{s,t}_{j,m} - \bar{y}^t_{j,m} \right)^2 \biggr]. \label{eq:depphlg:obj}
+		\end{split}
+	\end{equation}
+	{\color{blue} Being variables $ y^s_m$ and $ y^{s,t}_{j,m}$ binaries}, the two quadratic terms of the expression can be rewritten as follow.	
+	\begin{equation}
+	\begin{split}
+		\frac{1}{2} \sum\limits_{m \in {\cal M}} \rho_m \left( y^s_m - \bar{y}_m \right)^2 = & \sum\limits_{m \in {\cal M}} \frac{\rho_m}{2} \left( (y^s_m)^2 +  (\bar{y}_m)^2 - 2 y^s_m \bar{y}_m \right) \\
+		= & \sum\limits_{m \in {\cal M}} \frac{\rho_m}{2} \left( y^s_m +  \bar{y}_m - 2 y^s_m \bar{y}_m \right) \\
+		= & \sum\limits_{m \in {\cal M}} \left( \frac{\rho_m}{2} y^s_m + \frac{\rho_m}{2} \bar{y}_m - \rho_m  y^s_m \bar{y}_m \right)
+		\end{split}
+	\end{equation}
+	\begin{equation}
+	\begin{split}
+		\frac{1}{2} \sum\limits_{m \in {\cal M}} \sum\limits_{t \in T} \sum\limits_{j \in {\cal J}_{m}^t} \rho^{t}_{j,m} \left( y^{s,t}_{j,m} - \bar{y}^t_{j,m} \right)^2
+		= & \sum\limits_{m \in {\cal M}} \sum\limits_{t \in T} \sum\limits_{j \in {\cal J}_{m}^t} \frac{\rho^{t}_{j,m}}{2} \left( (y^{s,t}_{j,m})^2 + (\bar{y}^t_{j,m})^2 - 2 y^{s,t}_{j,m} \bar{y}^t_{j,m} \right) \\
+		= & \sum\limits_{m \in {\cal M}} \sum\limits_{t \in T} \sum\limits_{j \in {\cal J}_{m}^t} \frac{\rho^{t}_{j,m}}{2} \left( y^{s,t}_{j,m} + \bar{y}^t_{j,m} - 2 y^{s,t}_{j,m} \bar{y}^t_{j,m} \right) \\
+		= & \sum\limits_{m \in {\cal M}} \sum\limits_{t \in T} \sum\limits_{j \in {\cal J}_{m}^t} \left( \frac{\rho^{t}_{j,m}}{2} y^{s,t}_{j,m} + \frac{\rho^{t}_{j,m}}{2} \bar{y}^t_{j,m} - \rho^{t}_{j,m} y^{s,t}_{j,m} \bar{y}^t_{j,m} \right)
+	\end{split}
+	\end{equation}
+	The objective function for the augmented Lagrangian decomposition read thus
+	\begin{equation}
+	\begin{split}
+		\min_{y,z,x} 
+		\sum_{s \in \cal S} p^{s} \biggl[ 
+		& \sum_{m \in \cal M} \left(f_{m} + \lambda^s_m + \frac{\rho_m}{2} -\rho_m \bar{y}_m \right) y^s_{m} + \\
+		& \sum_{t \in T} \sum_{m \in {{\cal M}}} \sum_{j \in {\cal J}_{m}^t} \left(f_{m}^t + \lambda^{s,t}_{j,m} + (c_{m}^t-r_{m}^t)(V^{t} - {\cal V}_{j,m}^{t,s}) + \frac{\rho^{t}_{j,m}}{2} - \rho^{t}_{j,m} \bar{y}^t_{j,m} \right) y^{t,s}_{j,m} + \\
+		& + \sum_{\tau \in \cal T} \sum_{k \in {\cal K}^{\tau,s}} g^{\tau,s} z_k^{\tau,s} - \sum\limits_{m \in {\cal M}} \lambda^s_m \bar{y}_m - \sum\limits_{m \in {\cal M}} \sum\limits_{t \in T} \sum\limits_{j \in {\cal J}_{m}^t} \lambda^{s,t}_{j,m} \bar{y}^t_{j,m} + \\
+		& + \frac{1}{2} \sum\limits_{m \in {\cal M}} \rho_m \bar{y}_m + \frac{1}{2} \sum\limits_{m \in {\cal M}} \sum\limits_{t \in T} \sum\limits_{j \in {\cal J}_{m}^t} \rho^{t}_{j,m} \bar{y}^t_{j,m} \biggr]. \label{eq:depphlg:objbis}
+	\end{split}
+	\end{equation}
+	Fixing a value for variables $ \bar{y}_m $ and $ \bar{y}^{s,t}_{j,m}$, the model~\eqref{eq:depph:obj}-\eqref{eq:depph:14} decomposes over scenarios $ \cal S$.
+	Given
+	\begin{alignat}{2}
+		\bar{f}^s_{m} = & f_{m} + \lambda^s_m + \frac{\rho_m}{2} -\rho_m \bar{y}_m, \\
+		\bar{f}^{t,s}_{m} = & f_{m}^t + \lambda^{s,t}_{j,m} + (c_{m}^t-r_{m}^t)(V^{t} - {\cal V}_{j,m}^{t,s}) + \frac{\rho^{t}_{j,m}}{2} - \rho^{t}_{j,m} \bar{y}^t_{j,m},
+	\end{alignat}
+	the scenario $ s \in {\cal S}$ subproblem reads
+	\begin{equation}
+	\begin{split}
+		\min_{y,z,x} & \sum_{m \in \cal M} \bar{f}^s_m y^s_{m} + \sum_{t \in T} \sum_{m \in {{\cal M}}} \sum_{j \in {\cal J}_{m}^t} \bar{f}_{m}^{t,s} y^{t,s}_{j,m} + \sum_{\tau \in \cal T} \sum_{k \in {\cal K}^{\tau,s}} g^{\tau,s} z_k^{\tau,s}\label{eq:depphs:objf}
+	\end{split}
+	\end{equation}
+	\textit{subject to}
+	\begin{alignat}{2}
+		%	y_{j,m}^{t} \geq y_{j+1,m}^{t}, & \qquad \forall t \in T, m \in {\cal M}, j=1,\ldots,\vert{\cal J}^{t}_{m}\vert-1,
+		%	\label{eq:dep:2}\\
+		\sum\limits_{m \in \cal {M}} y^s_{m}\geq{N}, & \qquad
+		\label{eq:depphs:3}\\
+		\sum\limits_{t \in T} \sum\limits_{j \in {\cal J}^t_{m}} V_{m}^{t} \ y^{t,s}_{j,m} \geq \nu \sum\limits_{t \in T} \sum\limits_{m \in {\cal M}} \sum\limits_{j \in {\cal J}^t_{m}} V_{m}^{t} \ y^{t,s}_{j,m}, & \qquad \forall m \in {\cal M}
+		\label{eq:depphs:3.2}\\
+		\sum\limits_{m \in {\cal M}} \theta_{m} \ y^s_{m} \geq R \sum\limits_{m \in {\cal M}} y^s_{m}, & \qquad \label{eq:depphs:4}\\
+		\sum\limits_{t \in T} \sum\limits_{j \in {\cal J}^t_{m}} y^{s,t}_{j,m} \leq y^s_{m}, & \qquad \forall m \in \cal M, \label{eq:depphs:5}\\
+		\sum\limits_{j \in \cal J}x_{i,j}^{s} + \sum\limits_{k \in {\cal K}^{s}}x_{i,k}^{s} = 1, & \qquad \forall i \in {\cal I}^{s}, \label{eq:depphs:9}\\
+		\sum\limits_{i \in {\cal I}^{s}}v_i^{s} x_{i,j}^{s} \leq {\cal V}_{j,m}^{t,s} y^{s,t}_{j,m}, & \qquad \forall \: t \in T, m\in{{\cal M}}, j \in {\cal J}^t_{m}, \label{eq:depphs:10}\\
+		\sum\limits_{i \in {\cal I}^{s}} v_i^{s} x_{i,k}^{s} \leq V^{\tau} z_k^{\tau,s}, & \qquad \forall \: \tau \in {\cal T}, k \in {\cal K}^{\tau,s}, \label{eq:depphs:11}\\
+		y^{s,t}_{j,m} \in \{0, 1\}, & \qquad \forall \: \forall t \in T, m \in {\cal M}, j \in {\cal J}^t_{m}, \label{eq:depphs:6}\\
+		y^s_{m} \in \{0, 1\}, & \qquad \forall \: \forall m \in \cal M \label{eq:depphs:7}\\
+		x_{i,j}^{s} \in \{0, 1\}, & \qquad \forall \: i \in {\cal I}^{s}, j \in {\cal J}, \label{eq:depphs:12}\\
+		x_{i,k}^{s} \in \{0, 1\}, & \qquad \forall \: i \in {\cal I}^{s}, k \in {\cal K}^{s}, \label{eq:depphs:13}\\
+		z_k^{\tau,s} \in \{0, 1\}, & \qquad \forall \: \tau \in {\cal T} , k \in {\cal K}^{\tau,s}. \label{eq:depphs:14}
+	\end{alignat}
+	Model~\eqref{eq:depphs:objf}-\eqref{eq:depphs:14} is close to that of a deterministic VCSBPP including variables and constraints for selecting the suppliers providing the bins.
+	
+	\subsection{Enhanced subproblem ILP formulation}\label{ss:enhm}
+	Let $ {\cal D}^s$ be the set of all possible sizes of an order in scenario $ s \in S$ and $ x^{s}_{d,j}$ be an integer variable that counts the number of orders of size $ d \in {\cal D}^s$ to pack into bin $ j \in \{ \; {\cal J} \; \cup \; {\cal K}^{s} \; \}$ under scenario $ s \in S$.
+	Let also $ I^s_d$ be the set of orders of size $ d \in {\cal D}^s$ under scenario $ s \in S$.
+	
+	In the enhanced subproblem formulation for scenario $ s \in S$, variables $ x^{s}_{d,j}$ replace binary variables $ x^{s}_{i,j}$ such that $ i \in I_s$, $ j \in \{ \; {\cal J} \; \cup \; {\cal K}^{s} \; \}$.
+	The enhanced formulation reads
+	\begin{equation}
+	\begin{split}
+		\min_{y,z,x} & \sum_{m \in \cal M} \bar{f}^s_m y^s_{m} + \sum_{t \in T} \sum_{m \in {{\cal M}}} \sum_{j \in {\cal J}_{m}^t} \bar{f}_{m}^{t,s} y^{t,s}_{j,m} + \sum_{\tau \in \cal T} \sum_{k \in {\cal K}^{\tau,s}} g^{\tau,s} z_k^{\tau,s}\label{eq:depphsenh:objf}
+	\end{split}
+	\end{equation}
+	\textit{subject to}
+	\begin{alignat}{2}
+		\sum\limits_{m \in \cal {M}} y^s_{m}\geq{N}, & \qquad
+		\label{eq:depphsenh:3}\\
+		\sum\limits_{t \in T} \sum\limits_{j \in {\cal J}^t_{m}} V_{m}^{t} \ y^{t,s}_{j,m} \geq \nu \sum\limits_{t \in T} \sum\limits_{m \in {\cal M}} \sum\limits_{j \in {\cal J}^t_{m}} V_{m}^{t} \ y^{t,s}_{j,m}, & \qquad \forall m \in {\cal M}
+		\label{eq:depphsenh:3.2}\\
+		\sum\limits_{m \in {\cal M}} \theta_{m} \ y^s_{m} \geq R \sum\limits_{m \in {\cal M}} y^s_{m}, & \qquad \label{eq:depphsenh:4}\\
+		\sum\limits_{t \in T} \sum\limits_{j \in {\cal J}^t_{m}} y^{s,t}_{j,m} \leq y^s_{m}, & \qquad \forall m \in \cal M, \label{eq:depphsenh:5}\\
+		\sum\limits_{j \in {\cal J} \, \cup \, {\cal K}^{s} }x_{d,j}^{s}  = | I^s_d|, & \qquad \forall d \in {\cal D}^{s}, \label{eq:depphsenh:9}\\
+		\sum\limits_{d \in {\cal D}^{s}} d x_{d,j}^{s} \leq {\cal V}_{j,m}^{t,s} y^{s,t}_{j,m}, & \qquad \forall \: t \in T, m\in{{\cal M}}, j \in {\cal J}^t_{m}, \label{eq:depphsenh:10}\\
+		\sum\limits_{i \in {\cal D}^{s}} d x_{i,k}^{s} \leq V^{\tau} z_k^{\tau,s}, & \qquad \forall \: \tau \in {\cal T}, k \in {\cal K}^{\tau,s}, \label{eq:depphsenh:11}\\
+		y^{s,t}_{j,m} \in \{0, 1\}, & \qquad \forall \: \forall t \in T, m \in {\cal M}, j \in {\cal J}^t_{m}, \label{eq:depphsenh:6}\\
+		y^s_{m} \in \{0, 1\}, & \qquad \forall \: \forall m \in \cal M \label{eq:depphsenh:7}\\
+		x_{i,j}^{s} \in {\cal Z}^+, & \qquad \forall \: i \in {\cal I}^{s}, j \in \{ \; {\cal J} \; \cup \; {\cal K}^{s} \; \} , \label{eq:depphsenh:12}\\
+%		x_{i,k}^{s} \in \{0, 1\}, & \qquad \forall \: i \in {\cal I}^{s}, k \in {\cal K}^{s}, \label{eq:depphsenh:13}\\
+		z_k^{\tau,s} \in \{0, 1\}, & \qquad \forall \: \tau \in {\cal T} , k \in {\cal K}^{\tau,s}. \label{eq:depphsenh:14}
+	\end{alignat}
+	Constraints~\eqref{eq:depphsenh:9} replace constraints~\eqref{eq:depphs:9} of model~\eqref{eq:depphs:objf}-\eqref{eq:depphs:14}.
+	
+	This model can be solved effectively by ILP adding symmetry-breaking constraints for bin selection variables and defining branching priorities for integer variables.
+	Assigning priorities to the problem variables in a way that reflects the hierarchy of decisions largely speed up the problem resolution (see the attached paper draft).
+	
+	\subsection{A lower-bound for the subproblem}
+	As for the formulation of the equivalent deterministic problem reported in Section~\ref{s:deteq}, a lower-bound for the scenario $ s \in S$ subproblem can be computed by means of surrogate constraints for constraints~\eqref{eq:depphsenh:9} and~\eqref{eq:depphsenh:10}.
+	Let the ILP formulation of the LB be
+	\begin{equation*}
+	\begin{split}
+		\min_{y,z,x} & \sum_{m \in \cal M} \bar{f}^s_m y^s_{m} + \sum_{t \in T} \sum_{m \in {{\cal M}}} \sum_{j \in {\cal J}_{m}^t} \bar{f}_{m}^{t,s} y^{t,s}_{j,m} + \sum_{\tau \in \cal T} \sum_{k \in {\cal K}^{\tau,s}} g^{\tau,s} z_k^{\tau,s}\label{eq:depphsenhlb:objf}
+	\end{split}
+	\end{equation*}
+	\textit{subject to}
+	\begin{equation*}
+		\eqref{eq:depphsenh:3}, \, \eqref{eq:depphsenh:3.2}, \, \eqref{eq:depphsenh:4}, \, \eqref{eq:depphsenh:5},
+	\end{equation*}
+	\begin{alignat}{2}		
+%		\sum\limits_{d \in {\cal D}^{s}} \sum\limits_{j \in {\cal J} \, \cup \, {\cal K}^{s} } x_{d,j}^{s}  = & | I^s|, \label{eq:depphsenhlb:9}\\
+%		\sum\limits_{\substack{j \in \{{\cal K}^{s}\, \cup \, {\cal J} \}, \\ d \in {\cal D}^{s}}} d x_{d,j}^{s} 
+		\Upsilon^s \leq & \sum\limits_{\substack{t \in T, \\ m \in {\cal M}, \\ j \in {\cal J}^t_{m}}} {\cal V}_{j,m}^{t,s} y^{s,t}_{j,m} + \sum\limits_{\substack{\tau \in {\cal T}, \\ k \in {\cal K}^{\tau, s} }} V^{\tau} z_k^{\tau,s}, \label{eq:depphsenhlb:10}
+%		\sum\limits_{i \in {\cal D}^{s}} \leq , & \qquad \forall \: , , \label{eq:depphsenhlb:11}\\
+	\end{alignat}
+	\begin{alignat*}{2}		
+		y^{s,t}_{j,m} \in \{0, 1\}, & \qquad \forall \: \forall t \in T, m \in {\cal M}, j \in {\cal J}^t_{m},\\
+		y^s_{m} \in \{0, 1\}, & \qquad \forall \: \forall m \in \cal M \\
+%		x_{i,j}^{s} \in {\cal Z}^+, & \qquad \forall \: i \in {\cal I}^{s}, j \in \{ \; {\cal J} \; \cup \; {\cal K}^{s} \; \}, \\
+		z_k^{\tau,s} \in \{0, 1\}, & \qquad \forall \: \tau \in {\cal T} , k \in {\cal K}^{\tau,s}.
+	\end{alignat*}
+%	The set of constraints~\eqref{eq:depphsenhlb:9} and~\eqref{eq:depphsenhlb:10} surrogate constraints~\eqref{eq:depphsenh:9} and~\eqref{eq:depphsenh:10} respectively.
+	The objective function~\eqref{eq:depphsenh:objf} is unchanged, as well as the domain of the problem variables.
+	The LB formulation includes only the binary variables for selecting suppliers and bins under scenario $ s \in S$.
+
+	The problem solution of binary variables $ y_m$, $ y_{j,m}^t$, and $ z_k^{\tau,s}$, obtained computing the LB, provides also a partial solution of model~\eqref{eq:depphsenh:objf}-\eqref{eq:depphsenh:14} that is usable as warm-start solution for searching faster the optimal one.
+	{
+	\color{blue}
+	\subsection{Initial bounding procedure}\label{ss:initproc}
+	In this section, we describe a procedure for computing an initial solution of the 1st stage problem and an UB and a LB for the problem.
+	This is done by means the LB problem formulation described in Section~\ref{ss:problb}, let this be simply the LB problem $ \mathcal{P}_{LB}$ and $ LB$ the OF value of its optimal solution.
+	
+	The procedure operates as follows.
+	First, the problem $ \mathcal{P}_{LB}$ is solved to compute a value of $ LB$ and a solution of the 1st stage problem variables $ \bar{y}_m$ and $ \bar{y}^t_{j,m}$; with an abuse of notation, let $ \bar{y}$ be this solution.
+	The value of $ LB$ is indeed a valid lower for the problem, but the solution of 1st stage variables may not be feasible over all the scenarios.
+	To obtain a solution of the 1st stage variables feasible for the problem, the procedure evaluates the solution $ \bar{y}$ solving the subproblem of each scenario $s \in S$ independently by means of the enhanced subproblem formulation~\ref{eq:depphsenh:objf}-\ref{eq:depphsenh:14} of Section~\ref{ss:enhm} where the solution of 1st stage variables is enforced to be $ \bar{y}$.
+	Let $ \mathcal{SP}^s(\bar{y})$ be the subproblem of scenario $ s \in S$ where the solution of 1st stage variables is enforce be $ \bar{y}$.
+	Whenever a subproblem $ \mathcal{SP}^s(\bar{y}) : s \in S$ is found to be infeasible, the resolution of subproblems is halted, the current 1st stage solution $ \bar{y}$ is banned from the solution space of $ \mathcal{P}_{LB}$ by adding to problem the cut
+	\begin{equation}\label{eq:feascut}
+		\sum\limits_{m \in M : \bar{y}_{m} = 0} y_m + \sum\limits_{m \in M : \bar{y}_{m} = 1} (1 - y_m) + 
+		\sum\limits_{m \in M, t \in T, j \in {\cal J}^t : \bar{y}^t_{j,m} = 0} y^t_{j,m} + 
+		\sum\limits_{m \in M, t \in T, j \in {\cal J}^t : \bar{y}^t_{j,m} = 1} (1 - y^t_{j,m}) \ge 1,
+	\end{equation}
+	and the procedure computes a new solution $ \bar{y}^\prime$ of the 1st stage variables re-solving $ \mathcal{P}_{LB}$.
+	The procedure repeats these steps until all the subproblems $ \mathcal{SP}^s(\bar{y}) : s \in S$ are feasible.
+	The procedure stops as soon as it finds a solution $ \bar{y}^{\prime\prime}$ feasible for all the scenario subproblems $\mathcal{SP}^s(\bar{y}) : s \in S$.
+	The solution $ \bar{y}^{\prime\prime}$ is a feasible 1st stage problem solution and the average objective function value of subproblems $\mathcal{SP}^s(\bar{y}) : s \in S$ provides an UB of the problem and the scenario-dependent part of the function is a valid evaluation of the recourse function {\color{red} [Here details about the objective function are maybe due].}
+	A problem bounding is thus provided with the objective function value of $ \mathcal{P}_{LB}$ for $ \bar{y}^{\prime\prime}$ being a LB and the evaluation of $ \bar{y}^{\prime\prime}$ over the subproblems $\mathcal{SP}^s(\bar{y}) : s \in S$ an UB.	
+	Algorithm~\ref{algo:initbnd} provides the pseudocode of the initial bounding procedure.
+	\begin{algorithm}[!h]
+		\small
+		\caption{Initial bonding procedure}\label{algo:initbnd}
+		\begin{algorithmic}[1]
+			\Procedure{bound}{, ...}
+%			\State 
+			\While{ True }
+			\State $LB^\prime, \bar{y} \gets$ \texttt{solve( $ \mathcal{P}_{LB}$ )}
+			\State // update LB
+			\If{ $ LB > LB^\prime$}
+			\State $ LB = LB^\prime$
+			\EndIf 
+			\State // evaluate solution $\bar{y}$ 
+			\For{ $ s \in S$ }
+			\State $UB^s \gets$ \texttt{solve( $\mathcal{SP}^s(\bar{y})$ )}
+			\State // add cut~\eqref{eq:feascut} and break if subproblem infeasible
+			\If{ $\mathcal{SP}^s(\bar{y})$ \textbf{is} infeasible}
+			\State \texttt{addCut( $ \mathcal{P}_{LB}$, $\bar{y}$ )}
+			\State \textbf{break}
+			\EndIf
+			\EndFor
+			\State  // stop if all subproblems are feasible
+			\If{ $\mathcal{SP}^s(\bar{y})$ \textbf{is} feasible $ \forall s \in S$ }
+			\State $UB \gets$ \texttt{average( $\{\, UB^s \, : \, s \in S \,\}$ )}
+			\State \textbf{break}
+			\EndIf
+			\EndWhile
+			\EndProcedure
+		\end{algorithmic}
+	\end{algorithm}
+	}
+
+	\subsection{Progressive hedging procedure}
+	In this section, we sketch the general procedure of the progressive hedging method solving the problem.
+	Algorithm~\ref{algo:phproc} reports the pseudocode.
+	\begin{algorithm}[!h]
+	\small
+	\caption{Progressive hedging procedure}\label{algo:phproc}
+	\begin{algorithmic}[1]
+		\Procedure{PH}{, ...}
+		\State \textbf{Step 1}: Generate a set of scenarios $ S$;
+		\State \textbf{Step 2}: Apply the augmented Lagrangian decomposition to te deterministic equivalent problem formulation;
+		\State 
+		\State \textbf{Initialize optimization parameters}
+		\State $ \zeta \gets 0$ 
+		\State $ \lambda^{s,\zeta}_{m} \gets 0$
+		\State $ \lambda^{s,t,\zeta}_{j,m} \gets 0$
+		\State $ \rho^{\zeta}_{m} \gets \rho^{0}_{m}$
+		\State $ \rho^{t,\zeta}_{j,m} \gets \rho^{t,0}_{j,m}$
+		\State $ \alpha \gets \alpha_0 \; : \; \alpha_0 > 1$
+		\State 
+		\While{ True }
+		\State 
+		\For{ $ s \in S$ }
+		\State Solve model~\eqref{eq:depphsenh:objf}-\eqref{eq:depphsenh:14}
+		\EndFor
+		\State 
+		\State \textbf{Update global solution}
+		\State $ \bar{y}^\zeta_{m} \gets \sum\limits_{s \in S} p_s y^{s, \zeta}_{m}$
+		\State $ \bar{y}^{t,\zeta}_{j,m} \gets \sum\limits_{s \in S}p_s y^{s,t, \zeta}_{j,m}$
+		\State 
+		\State \textbf{Update multipliers and penalties}
+		\State $ \lambda^{s,\zeta + 1}_{m} \gets \lambda^{s,\zeta}_{m} + \rho^{\zeta}_{m} \left( y^{s, \zeta}_{m} - \bar{y}^\zeta_{m} \right) $
+		\State $ \lambda^{s,t,\zeta + 1}_{j,m} \gets \lambda^{s,t,\zeta}_{j,m} + \rho^{t,\zeta}_{j,m} \left( y^{s,t, \zeta}_{j,m} - \bar{y}^{t,\zeta}_{j,m} \right)$
+		\State $ \rho^{\zeta + 1}_{m} \gets \alpha \rho^{\zeta}_{m}$
+		\State $ \rho^{t,\zeta + 1}_{j,m} \gets \alpha \rho^{t,\zeta + 1}_{j,m}$
+		\State 
+		\If{ Consensus reached $ \forall \; s \in S$}
+		\State \textbf{return} \hspace{2cm} // the solution is optimal
+		\EndIf
+		\State 
+		\State $ \zeta \gets \zeta + 1$
+		\EndWhile
+		\State 
+		\EndProcedure
+	\end{algorithmic}
+	\end{algorithm}
+%	{
+%		\color{red}
+%		\paragraph*{Points to fix}
+%		\begin{itemize}
+%			\item
+%			\item
+%		\end{itemize}
+%	}
+	
+	\section{Computational experiments}\label{s:nexp}
+	In this section, we report the numerical experiments we ran.
+	In Section~\ref{ss:instances}, we describe the instances we generated to the algorithm devised for solving the considered problem.
+	
+	{
+	\color{blue}
+	\subsection{Instances}\label{ss:instances}
+	In this section, we describe the instance generation procedure used for the computational experiments.
+	Table~\ref{tab:instance_generation} resumes all the instance data and provides a description of such data.
+	The instance generation procedure used in this paper extends that of~\cite{crainic2024capacity} to supplier selection problem.
+	Most of the entries of Table~\ref{tab:instance_generation} are self-explanatory and related to the problem data introduced in Section~\ref{s:probdesc}.
+	Few entries requires a further explanation.
+	
+	The number of items of each instance is defined \textit{a priori} and is fixed even for each scenario of the instance.
+	This is indeed an oversimplification of the real-world, but it enables to evaluate the algorithm on instances of different sizes.
+	
+	For an instance, the number of bin available at the 1st stage of the problem is equal to total volume of the items of the scenario with the greatest total volume of items.
+	For each supplier, the aggregated capacity loss is computed through a perturbation of the supplier's reliability $ \theta_m$ with a random variable $ \varepsilon$.
+	The perturbed $ \tilde{\theta}^s_m$ is the actual reliability of supplier $ m \in M$ under scenario $s \in S$.
+	The capacity loss $ {\cal L}^s_m$ of the supplier $ m \in M$ under scenario $s \in S$ is thus computed as function of $1 - \tilde{\theta}^s_m$ as reported in Table~\ref{tab:instance_generation}.
+	
+	For computing the actual capacity in the 2nd stage of the 1st stage bins under each scenario $s \in S$, we consider two types of capacity loss: uniform and localized.
+	In the case of uniform loss, the capacity loss of a single bin is computed as follows.
+	For each bin, if there is a capacity loss in the 2nd stage is drawn from a discrete 0/1 uniform distribution.
+	Given $ {\cal L}^s_m$ the total capacity loss of the supplier $ m \in M$, the loss of the drawn bins is therefore computed as the total loss divided by the number of drawn bins.
+	In the case of localized loss, the number of bins that lose the entire capacity is computed as the the total loss divided by the capacity of the volume of one bin.
+	This procedure is applied for every supplier $ m \in M$ and every bin type $ t \in T$, the loss of capacity $ {\cal L}^s_m$ is the same for every bin type.
+	
+	The number of bins available at the 2nd stage for each supplier and bin type is computed as function of the bins available at 1st stage.
+	Given for every supplier $ m \in M$ and bin type $ t \in T$ the scalar values $ a^t_m \in [0,1]$ and $ b^t_m \in [0,1]$ such that $ a^t_m < b^t_m$, the number number of bins of  of supplier $ m$ and type $ t$ available at the 2nd stage is drawn from the discrete uniform distribution $ U_{\text{int}}( a^t_m | {\cal J}^t_m |, b^t_m | {\cal J}^t_m |)$ where $ | {\cal J}^t_m |$ is the number of bins available at the 1st stage.
+	}
+	\begin{table}[htb!]
+		\footnotesize
+		\centering
+		\begin{tabular}{llr}
+			\hline
+			Characteristic & Expression & Values or parameter domain \\
+			\hline
+			Nr. of suppliers                                    & $|{\cal M}| $                           & $ \{ \, 10, \, 15, \, 20 \, \}$ \\
+			Ave. reliability                                    & $R $                                    & $ \{\, 0.6, \, 0.8 \, \}$ \\
+			Min. contracts                                      & $|{\cal N}| $                           & $ \{ \, \lceil 0.25 |{\cal M}| \rceil, \, \lceil 0.5 |{\cal M}| \rceil \, \}$ \\
+			Min. per cent vol. per supplier                     & $V_{\text{min}}$                        & $  \{\, 0.1, \, 0.2, \, 0.3 \,\}$ \\
+			Reliability of supplier $ m \in M$                  & $\theta_{m}$                            & $ \theta_{m} \sim U(0.5, 1)$ \\
+			
+			Bin volumes, set \textit{T3},       $ |T| = 3 $     & $ V_t          $                        & $ \{ \, 50, \, 100, \, 150 \, \}$ \\
+			Bin volumes, set \textit{T5},       $ |T| = 5 $     & $ V_t          $                        & $ \{ \, 50, \, 80, \, 100, \, 120, \, 150 \, \}$ \\
+			
+			Contract rate of bins                               & $f^t_m =    V^t (1 + \gamma^t_m)$       & with $\gamma^t_m \sim U(-0.3,0.3)$  \\
+			Spot rate of bins                                   & $g^t_m = f^t_m (1 + \beta^t_m) $        & with $\beta^t_m \sim U(0.5, 1.5)$  \\
+
+			Cost of capacity loss                               & $c^t_m = \frac{f^t_m}{V^t}(1 + \alpha)$ & with $ \alpha \in \{ \, 0.3, \, 0.7 \, \}$ \\
+			Compensation of capacity loss                       & $r^t_m = \frac{f_m^t}{V^t}$             & \\
+			
+			Nr. of items                                        & $ |I|$                                  & $ \{ \, 200, \, 500, \, 1000, \, 2000 \, \}$ \\
+
+%			Number of scenarios                                 & $ |S|$                                  &  \\
+			
+			Nr. of 1st stage bins                               & $ | {\cal J}^t_m | = \lceil \frac{1}{V^t} \max_{s \in S} \sum_{i \in I_s} \nu^s_i \rceil $ & \\
+			Total loss of 1st stage bins                        & ${\cal L}^s_m = (1 - \tilde{\theta}^s_m) \sum_{i \in I_s} \nu^s_i$ & with $ \tilde{\theta}^s_m = \theta_m + \varepsilon$ and $  \varepsilon \sim U(-0.2, 0.2)$ \\
+			Nr. of 2nd stage bins                               & $ | {\cal K}^t_m |$                     & drawn from $ U_{\text{int}}( a^t_m | {\cal J}^t_m |, b^t_m | {\cal J}^t_m |)$  \\
+			Type of 1st stage bin loss                          & \textit{Uniform} (U) or \textit{Localized} (L) & \\
+			1st stage bin loss, case U                          & ${\cal V}^s_j = V^t_m - l^s_m$ & with $ l^s_m = \frac{{\cal L}^s_m}{|{\cal J}^t_m|} $ \\
+			1st stage bin loss, case L                          & ${\cal V}^s_j$ is $0$ or $ V^t_m $ & such that $ \sum_{j \in {\cal J}^t} {\cal V}^s_j + {\cal L}^s_m = V^t_m |{\cal J}^t| $ \\
+			\hline
+		\end{tabular}
+		\caption{Instance characteristics}
+		\label{tab:instance_generation}
+	\end{table}
+
+	{
+%		\paragraph*{Main points of computation study}
+%		\begin{itemize}
+%			\item 
+%		\end{itemize}
+	}
+
+	\subsection{Evaluation of the perfect information expected value}
+	
+	\bibliographystyle{abbrv}
+	\bibliography{cpss.bib}
+	
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

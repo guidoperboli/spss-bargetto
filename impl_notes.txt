@@ -1,0 +1,11 @@
+TO DO
+
+Date 24/06/2024
+    + Next to do/implement
+OK      a. Check ILP model
+KO      b. Symmetry-breaking constraints
+OK      c. Branching priority and directions
+OK      d. Enumeration supplier selection
+OK      e. PI evaluation
+OK      f. Ave. scenario evaluation
+OK      g. Variable number of items
